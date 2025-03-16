@@ -160,9 +160,40 @@ html, body {
   max-width: 200px;
 }
 
+/* View Data Page - Adjust Tabs Spacing */
+.data-page {
+  padding-top: 20px; /* Space below header */
+}
+
+/* Adjust Space Between Header and Tabs */
+#cohort-tabs {
+  margin-top: 30px; /* Adds space between the header and tabs */
+}
+
+/* Custom Styling for Tabs */
+.nav-tabs .nav-link {
+  color: #28808f !important; /* Set non-selected tabs to turquoise */
+  font-weight: bold;
+}
+
+/* Active Tab Styling */
+.nav-tabs .nav-link.active {
+  background-color: #28808f !important; /* Active tab background */
+  color: white !important;
+  border-color: #28808f !important;
+}
+
+/* Tables */
+.data-table {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 10px;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 1024px) {
-  .upload-page {
+  .upload-page,
+  .data-page {
     width: 100vw;
   }
 }
