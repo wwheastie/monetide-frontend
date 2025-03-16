@@ -52,12 +52,29 @@ html, body {
   color: white;
 }
 
+/* Sidebar Title */
 .sidebar-title {
   font-weight: bold;
   padding-left: 15px;
   margin-bottom: 10px;
 }
 
+/* Sidebar Image (Between Title and Menu) */
+.sidebar-image-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px 0; /* Space between title and menu */
+}
+
+.sidebar-image {
+  width: 130px; /* Slightly larger than menu title */
+  max-width: 90%; /* Keeps it responsive */
+  height: auto;
+  border-radius: 5px; /* Optional rounded corners */
+}
+
+/* Sidebar Menu */
 .sidebar .nav {
   flex-grow: 1;
 }
@@ -70,7 +87,7 @@ html, body {
 }
 
 .sidebar-link:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.2); /* Slight highlight effect */
   color: white;
 }
 
@@ -80,15 +97,18 @@ html, body {
   color: white !important;
 }
 
-/* Upload Page */
+/* Upload Page - Centered with Header Logo */
 .upload-page {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column; /* Align everything vertically */
   height: calc(100vh - 90px); /* Adjust height to exclude the header */
-  width: calc(100vw - 200px); /* Adjust for sidebar width */
-  margin-left: 200px;
+  width: 100vw; /* Full width without considering sidebar */
+  margin-left: 0; /* Remove sidebar offset */
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%); /* Perfectly center regardless of sidebar */
   overflow: hidden;
 }
 
@@ -143,7 +163,6 @@ html, body {
 /* Responsive Adjustments */
 @media (max-width: 1024px) {
   .upload-page {
-    margin-left: 0;
     width: 100vw;
   }
 }
