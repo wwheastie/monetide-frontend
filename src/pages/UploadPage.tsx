@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Button, Form } from "react-bootstrap";
 
@@ -6,13 +6,28 @@ const UploadPage = ({ setData }: { setData: (data: any) => void }) => {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+    // Handle file selection
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files) {
+        if (event.target.files && event.target.files.length > 0) {
             setFile(event.target.files[0]);
         }
     };
 
+    // Handle drag & drop
+    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+            setFile(event.dataTransfer.files[0]);
+        }
+    };
+
+    const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+    };
+
+    // Handle Upload
     const handleUpload = async () => {
         if (!file) return alert("Please select a file.");
 
@@ -40,16 +55,35 @@ const UploadPage = ({ setData }: { setData: (data: any) => void }) => {
     };
 
     return (
-        <Container className="mt-4">
-            <h2>Upload File</h2>
-            <Form>
-                <Form.Group>
-                    <Form.Control type="file" onChange={handleFileChange} />
-                </Form.Group>
-                <Button onClick={handleUpload} disabled={loading} className="mt-3">
+        <Container className="upload-page">
+            <div className="upload-content">
+                <h2 className="upload-title">Upload File</h2>
+
+                {/* Drag and Drop Area */}
+                <div
+                    className="drop-zone"
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onClick={() => fileInputRef.current?.click()}
+                >
+                    <p className="drop-text">
+                        {file ? `Selected File: ${file.name}` : "Drag & Drop or Click to Upload"}
+                    </p>
+                </div>
+
+                {/* Hidden File Input */}
+                <Form.Control
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    style={{ display: "none" }}
+                />
+
+                {/* Upload Button */}
+                <Button onClick={handleUpload} disabled={loading || !file} className="mt-3">
                     {loading ? "Uploading..." : "Upload"}
                 </Button>
-            </Form>
+            </div>
         </Container>
     );
 };

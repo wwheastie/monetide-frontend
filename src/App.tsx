@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
+import Header from "./components/Header"; // Import the new Header component
 import UploadPage from "./pages/UploadPage";
 import DataPage from "./pages/DataPage";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -18,6 +19,10 @@ const App = () => {
 
     return (
         <Router>
+            {/* Header - Always Visible */}
+            <Header />
+
+            {/* Main Layout with Sidebar and Content */}
             <div className="d-flex">
                 <Sidebar />
                 <div className="p-4 flex-grow-1">

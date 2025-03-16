@@ -1,68 +1,155 @@
+/* Global Styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
+/* Prevent Horizontal Scrolling */
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* Prevents unnecessary horizontal scrolling */
+}
+
+/* Header Banner - Center Logo with Upload Content */
+.header-banner {
+  width: 100%;
+  background-color: #000000; /* Black background */
+  padding: 15px 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  justify-content: center; /* Ensures the logo is centered horizontally */
+  align-items: center; /* Aligns vertically */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Logo Image - Ensure Proper Sizing & Positioning */
+.header-logo {
+  height: 60px; /* Adjust height as needed */
+  max-width: 100%;
+  object-fit: contain;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+/* Sidebar */
+.sidebar {
+  width: 200px;
+  height: 100vh;
+  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  padding-top: 70px;
+  color: white;
+}
+
+.sidebar-title {
+  font-weight: bold;
+  padding-left: 15px;
+  margin-bottom: 10px;
+}
+
+.sidebar .nav {
+  flex-grow: 1;
+}
+
+.sidebar-link {
+  padding: 10px 15px;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Active Link (Selected Menu Item) */
+.active-link {
+  background-color: #28808f !important;
+  color: white !important;
+}
+
+/* Upload Page */
+.upload-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column; /* Align everything vertically */
+  height: calc(100vh - 90px); /* Adjust height to exclude the header */
+  width: calc(100vw - 200px); /* Adjust for sidebar width */
+  margin-left: 200px;
+  overflow: hidden;
+}
+
+/* Upload Content */
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Ensures title, drop-zone, and button are aligned */
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+/* Upload Title */
+.upload-title {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Drag & Drop Area */
+.drop-zone {
+  width: 100%;
+  max-width: 400px;
+  height: 150px;
+  border: 2px dashed #28808f;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background 0.2s;
+  margin-bottom: 20px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.drop-zone:hover {
+  background: rgba(40, 128, 143, 0.1);
+}
+
+.drop-text {
+  color: #28808f;
+  font-weight: bold;
+}
+
+/* Upload Button */
+.upload-content button {
+  width: 100%;
+  max-width: 200px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .upload-page {
+    margin-left: 0;
+    width: 100vw;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+}
+
+@media (max-width: 768px) {
+  .upload-content {
+    width: 95%;
   }
 }
