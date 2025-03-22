@@ -17,7 +17,9 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden; /* Prevents unnecessary horizontal scrolling */
+  height: 100%;
+  overflow-x: hidden; /* Ensures no unwanted white space */
+  overflow-y: auto;
 }
 
 /* Header Banner - Center Logo with Upload Content */
@@ -190,16 +192,115 @@ html, body {
   margin-top: 10px;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 1024px) {
-  .upload-page,
-  .data-page {
-    width: 100vw;
+/* Login Page - Fullscreen Black Background */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #000000; /* Full black background */
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  flex-direction: column;
+}
+
+/* Login Container */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Login Logo - Bigger on Desktop */
+.login-logo {
+  width: 400px; /* Large size for desktop */
+  height: auto;
+  margin-bottom: 30px; /* Increased spacing */
+}
+
+/* Login Title - More Space Below */
+.login-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 30px; /* Increased spacing from email block */
+}
+
+@media (max-width: 768px) {
+  .login-logo {
+    width: 180px; /* Smaller logo for mobile */
   }
 }
 
+/* Login Box */
+.login-content {
+  background: #fff;
+  padding: 40px; /* Increased padding inside */
+  border-radius: 12px;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Login Button - Aqua Color */
+.login-button {
+  width: 100%;
+  max-width: 220px;
+  background-color: #28808f !important; /* Aqua color */
+  border-color: #28808f !important;
+  color: white;
+  font-weight: bold;
+  padding: 12px;
+  font-size: 16px;
+}
+
+.login-button:hover {
+  background-color: #1f6b76 !important; /* Darker shade on hover */
+  border-color: #1f6b76 !important;
+}
+
+/* Ensure No Extra Space */
+.login-page * {
+  box-sizing: border-box;
+}
+
+/* Fix Mobile Layout */
 @media (max-width: 768px) {
   .upload-content {
     width: 95%;
   }
+
+  .login-page {
+    width: 100vw !important;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 100vw;
+  }
 }
+
+/* Sidebar Logout Button */
+.sidebar-logout {
+  width: 100%;
+  padding: 12px;
+  margin-top: auto; /* Pushes it to the bottom */
+  background-color: #d9534f; /* Bootstrap danger red */
+  border: none;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.sidebar-logout:hover {
+  background-color: #c9302c; /* Darker red on hover */
+}
+

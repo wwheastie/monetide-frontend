@@ -1,0 +1,83 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Button, Alert } from "react-bootstrap";
+
+const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+
+        try {
+            const response = await fetch("http://localhost:8080/api/v1/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (!response.ok) throw new Error("Invalid credentials");
+
+            const data = await response.json();
+            const token = data.token;
+            const customerId = data.customerId;
+
+            if (!customerId) throw new Error("Customer ID missing in response");
+
+            // Store token and customerId
+            localStorage.setItem("token", token);
+            localStorage.setItem("customerId", customerId);
+            setCustomerId(customerId);
+
+            // Redirect to Upload Page
+            navigate("/", { replace: true });
+        } catch (err) {
+            setError("Login failed. Please check your credentials.");
+        }
+    };
+
+    return (
+        <div className="login-page">
+            <div className="login-container">
+                {/* Logo Above the Login Box */}
+                <img src="/public/monetide-full.png" alt="Company Logo" className="login-logo" />
+
+                <div className="login-content">
+                    <h2 className="login-title">Login</h2>
+                    {error && <Alert variant="danger">{error}</Alert>}
+                    <Form onSubmit={handleLogin}>
+                        <Form.Group controlId="email">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+
+                        <Form.Group controlId="password" className="mt-3">
+                            <Form.Label>Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
+
+                        {/* Styled Button with Aqua Color */}
+                        <Button type="submit" className="mt-3 login-button">
+                            Login
+                        </Button>
+                    </Form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default LoginPage;

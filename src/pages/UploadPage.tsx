@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Button, Form } from "react-bootstrap";
 
-const UploadPage = ({ setData }: { setData: (data: any) => void }) => {
+const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; customerId: string }) => {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -36,8 +36,10 @@ const UploadPage = ({ setData }: { setData: (data: any) => void }) => {
         formData.append("file", file);
 
         try {
-            const response = await fetch("http://localhost:8080/api/v1/customer/123456/cohorts", {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/cohorts`, {
                 method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
                 body: formData,
             });
 
