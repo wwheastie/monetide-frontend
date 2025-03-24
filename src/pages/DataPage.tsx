@@ -15,6 +15,7 @@ interface Cohort {
     name: string;
     description?: string;
     customers: Customer[];
+    uniqueCustomerCount: number;
 }
 
 const DEFAULT_PAGE_SIZE = 5;
@@ -87,9 +88,10 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
 
                                 {cohort.customers.length > 0 ? (
                                     <>
-                                        {/* Page Size Selector & Total Count in the Same Row */}
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <Form.Group className="d-flex align-items-center">
+                                        {/* Page Size Selector & Unique + Total Count */}
+                                        <div className="d-flex justify-content-between align-items-start flex-column flex-md-row mb-2">
+                                            {/* Left: Rows per page selector */}
+                                            <Form.Group className="d-flex align-items-center mb-2 mb-md-0">
                                                 <Form.Label className="me-2">Rows per page:</Form.Label>
                                                 <Form.Select
                                                     value={pageSize}
@@ -103,8 +105,13 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                                                     ))}
                                                 </Form.Select>
                                             </Form.Group>
-                                            {/* Total Customers Count on the Same Line */}
-                                            <span className="text-muted">Total: {cohort.customers.length} customers</span>
+
+                                            {/* Right: Total | Unique */}
+                                            <div className="text-muted d-flex gap-3 align-items-center">
+                                                <span>Total: {cohort.customers.length} customers</span>
+                                                <span>|</span>
+                                                <span>Unique: {cohort.uniqueCustomerCount} customers</span>
+                                            </div>
                                         </div>
 
                                         <Table striped bordered hover>
