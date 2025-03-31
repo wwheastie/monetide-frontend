@@ -18,8 +18,7 @@ interface RenewalCohort {
     customers: CustomerData[];
 }
 
-const DEFAULT_PAGE_SIZE = 5;
-const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
+const NOTICE_OPTIONS = [15, 30, 60, 90];
 
 const RenewalsPage = ({ customerId }: { customerId: string }) => {
     const [cohorts, setCohorts] = useState<RenewalCohort[]>([]);
@@ -27,40 +26,10 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
     const [error, setError] = useState<string | null>(null);
     const [scrollLeft, setScrollLeft] = useState(false);
     const [scrollRight, setScrollRight] = useState(false);
-    const [pagination, setPagination] = useState<{
-        [key: string]: { page: number; pageSize: number };
-    }>({});
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/renewals`, {
-                    method: "POST",
-                });
-                if (response.status === 400) {
-                    setError("Uploaded data is needed to display renewals.");
-                    return;
-                }
-                if (!response.ok) throw new Error("Failed to fetch renewal data.");
-                const json = await response.json();
-                const fetchedCohorts = json.renewalCohorts || [];
-                setCohorts(fetchedCohorts);
-                setActiveTab(fetchedCohorts?.[0]?.name || "");
-
-                const initialPagination = Object.fromEntries(
-                    fetchedCohorts.map((cohort: RenewalCohort) => [
-                        cohort.name,
-                        { page: 1, pageSize: DEFAULT_PAGE_SIZE },
-                    ])
-                );
-                setPagination(initialPagination);
-            } catch (err) {
-                setError("An error occurred while loading renewals.");
-            }
-        };
-
-        fetchData();
-    }, []);
+    const [noticeSentDate, setNoticeSentDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+    const [daysOfNotice, setDaysOfNotice] = useState<number>(60);
+    const [generated, setGenerated] = useState(false);
+    const [percentIncrease, setPercentIncrease] = useState<number>(0);
 
     useEffect(() => {
         const tabWrapper = document.querySelector(".renewals-tab-wrapper");
@@ -87,82 +56,149 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
         }
     };
 
-    const handlePageChange = (tabName: string, newPage: number) => {
-        setPagination((prev) => ({
-            ...prev,
-            [tabName]: { ...prev[tabName], page: newPage },
-        }));
+    const handleGenerate = async () => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/renewals`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    noticeSentDate,
+                    daysOfNotice,
+                }),
+            });
+
+            if (response.status === 400) {
+                setError("Uploaded data is needed to display renewals.");
+                return;
+            }
+
+            if (!response.ok) throw new Error("Failed to fetch renewal data.");
+            const json = await response.json();
+            setCohorts(json.renewalCohorts || []);
+            setActiveTab(json.renewalCohorts?.[0]?.name || "");
+            setError(null);
+            setGenerated(true);
+        } catch (err) {
+            setError("An error occurred while loading renewals.");
+        }
     };
 
-    const handlePageSizeChange = (tabName: string, newSize: number) => {
-        setPagination((prev) => ({
-            ...prev,
-            [tabName]: { page: 1, pageSize: newSize },
-        }));
+    const allCustomers = cohorts.flatMap((c) => c.customers);
+
+    const calculateCurrentMRR = (): number => {
+        return allCustomers.reduce((sum, customer) => {
+            const mrr = Number(customer.MRR);
+            return sum + (isNaN(mrr) ? 0 : mrr);
+        }, 0);
     };
+
+    const formatCurrency = (amount: number): string => {
+        return amount.toLocaleString("en-US", {
+            style: "currency",
+            currency: "USD",
+            minimumFractionDigits: 2,
+        });
+    };
+
+    const currentMRR = calculateCurrentMRR();
+    const projectedMRR = currentMRR * (1 + percentIncrease / 100);
 
     const activeCohort = cohorts.find((c) => c.name === activeTab);
-    const currentPagination = pagination[activeTab] || { page: 1, pageSize: DEFAULT_PAGE_SIZE };
-    const totalPages = activeCohort
-        ? Math.ceil(activeCohort.customers.length / currentPagination.pageSize)
-        : 1;
-    const startIndex = (currentPagination.page - 1) * currentPagination.pageSize;
-    const paginatedCustomers = activeCohort?.customers.slice(
-        startIndex,
-        startIndex + currentPagination.pageSize
-    );
 
     return (
-        <Container className="data-page">
-            <h2>Renewals</h2>
+        <Container className="data-page mt-4">
+            <h2 className="mb-4">Renewals</h2>
+
+            <Form className="mb-4">
+                <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end gap-3">
+                    <div className="d-flex flex-column flex-md-row align-items-md-end gap-3">
+                        <Form.Group controlId="noticeDate">
+                            <Form.Label>Notice Sent Date</Form.Label>
+                            <Form.Control
+                                type="date"
+                                value={noticeSentDate}
+                                onChange={(e) => setNoticeSentDate(e.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group controlId="daysOfNotice">
+                            <Form.Label>Days of Notice</Form.Label>
+                            <Form.Select
+                                value={daysOfNotice}
+                                onChange={(e) => setDaysOfNotice(Number(e.target.value))}
+                            >
+                                {NOTICE_OPTIONS.map((days) => (
+                                    <option key={days} value={days}>{days} days</option>
+                                ))}
+                            </Form.Select>
+                        </Form.Group>
+
+                        <Button
+                            variant="primary"
+                            className="mt-2 mt-md-0"
+                            onClick={handleGenerate}
+                            disabled={false}
+                        >
+                            Generate
+                        </Button>
+                    </div>
+
+                    {generated && (
+                        <div className="d-flex flex-column flex-md-row align-items-md-end gap-3">
+                            <Form.Group controlId="percentIncrease">
+                                <Form.Label>Target % Increase</Form.Label>
+                                <Form.Control
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={percentIncrease}
+                                    onChange={(e) => setPercentIncrease(Number(e.target.value))}
+                                />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label>Current MRR</Form.Label>
+                                <Form.Control type="text" readOnly value={formatCurrency(currentMRR)} style={{ pointerEvents: "none" }} />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label>Projected MRR</Form.Label>
+                                <Form.Control type="text" readOnly value={formatCurrency(projectedMRR)} style={{ pointerEvents: "none" }} />
+                            </Form.Group>
+                        </div>
+                    )}
+                </div>
+            </Form>
 
             {error ? (
                 <Alert variant="warning">{error}</Alert>
             ) : (
-                <>
-                    {/* Tabs */}
-                    <div className="d-flex align-items-center position-relative mb-3">
-                        {scrollLeft && (
-                            <ChevronLeft className="tab-arrow left" onClick={() => scrollTabs("left")} />
-                        )}
-                        <div className="renewals-tab-wrapper flex-grow-1 mx-3">
-                            <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k || "")}>
-                                {cohorts.map((cohort) => (
-                                    <Nav.Item key={cohort.name}>
-                                        <Nav.Link eventKey={cohort.name}>{cohort.name}</Nav.Link>
-                                    </Nav.Item>
-                                ))}
-                            </Nav>
-                        </div>
-                        {scrollRight && (
-                            <ChevronRight className="tab-arrow right" onClick={() => scrollTabs("right")} />
-                        )}
-                    </div>
+                generated && (
+                    <>
+                        <div className="d-flex align-items-center position-relative mb-3">
+                            {scrollLeft && (
+                                <ChevronLeft className="tab-arrow left position-absolute start-0 z-3" onClick={() => scrollTabs("left")} />
+                            )}
 
-                    {/* Table */}
-                    {activeCohort && (
-                        <>
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                {/* Rows per page selector */}
-                                <Form.Group className="d-flex align-items-center">
-                                    <Form.Label className="me-2 mb-0">Rows per page:</Form.Label>
-                                    <Form.Select
-                                        value={currentPagination.pageSize}
-                                        onChange={(e) => handlePageSizeChange(activeTab, parseInt(e.target.value))}
-                                        style={{ width: "100px" }}
-                                    >
-                                        {PAGE_SIZE_OPTIONS.map((size) => (
-                                            <option key={size} value={size}>
-                                                {size}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </Form.Group>
-
-                                {/* Total count */}
-                                <span className="text-muted">Total: {activeCohort.customers.length} customers</span>
+                            <div className="renewals-tab-wrapper flex-grow-1 mx-5 overflow-hidden">
+                                <Nav variant="tabs" activeKey={activeTab} onSelect={(k) => setActiveTab(k || "")}
+                                     className="flex-nowrap">
+                                    {cohorts.map((cohort) => (
+                                        <Nav.Item key={cohort.name}>
+                                            <Nav.Link eventKey={cohort.name}>{cohort.name}</Nav.Link>
+                                        </Nav.Item>
+                                    ))}
+                                </Nav>
                             </div>
 
+                            {scrollRight && (
+                                <ChevronRight className="tab-arrow right position-absolute end-0 z-3" onClick={() => scrollTabs("right")} />
+                            )}
+                        </div>
+
+                        {activeCohort && (
                             <Table striped bordered hover responsive>
                                 <thead>
                                 <tr>
@@ -172,41 +208,18 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {paginatedCustomers?.map((customer, idx) => (
+                                {activeCohort.customers.map((customer, idx) => (
                                     <tr key={idx}>
                                         {Object.values(customer).map((value, i) => (
-                                            <td key={i}>{typeof value === "number" ? value.toFixed(2) : value}</td>
+                                            <td key={i}>{typeof value === "number" ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : value}</td>
                                         ))}
                                     </tr>
                                 ))}
                                 </tbody>
                             </Table>
-
-                            {/* Pagination Controls */}
-                            {totalPages > 1 && (
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => handlePageChange(activeTab, currentPagination.page - 1)}
-                                        disabled={currentPagination.page === 1}
-                                    >
-                                        Previous
-                                    </Button>
-                                    <span>
-                    Page {currentPagination.page} of {totalPages}
-                  </span>
-                                    <Button
-                                        variant="secondary"
-                                        onClick={() => handlePageChange(activeTab, currentPagination.page + 1)}
-                                        disabled={currentPagination.page === totalPages}
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
-                            )}
-                        </>
-                    )}
-                </>
+                        )}
+                    </>
+                )
             )}
         </Container>
     );

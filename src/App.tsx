@@ -5,8 +5,8 @@ import Header from "./components/Header";
 import UploadPage from "./pages/UploadPage";
 import DataPage from "./pages/DataPage";
 import LoginPage from "./pages/LoginPage";
+import RenewalsPage from "./pages/RenewalsPage";
 import "bootstrap/dist/css/bootstrap.min.css";
-import RenewalsPage from "./pages/RenewalsPage.tsx";
 
 const App = () => {
     const [data, setData] = useState<any>(() => {
@@ -14,10 +14,9 @@ const App = () => {
         return cachedData ? JSON.parse(cachedData) : null;
     });
 
-    const [customerId, setCustomerId] = useState<string | null>(localStorage.getItem("customerId"));
+    const [customerId, setCustomerId] = useState<string | null>(() => localStorage.getItem("customerId"));
 
     useEffect(() => {
-        // Check if user is authenticated
         const token = localStorage.getItem("token");
         const storedCustomerId = localStorage.getItem("customerId");
 
@@ -35,28 +34,40 @@ const App = () => {
 
     return (
         <Router>
-            {/* Protected Layout - Show Sidebar & Header if logged in */}
-            {customerId && (
-                <>
-                    <Header />
-                    <div className="d-flex">
-                        <Sidebar setCustomerId={setCustomerId}/>
-                        <div className="p-4 flex-grow-1">
-                            <Routes>
-                                <Route path="/" element={<UploadPage setData={updateData} customerId={customerId} />} />
-                                <Route path="/data" element={<DataPage data={data} />} />
-                                <Route path="/renewals" element={<RenewalsPage customerId={customerId}/>} />
-                                <Route path="*" element={<Navigate to="/" replace />} /> {/* Catch-all redirect */}
-                            </Routes>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* Routes */}
             <Routes>
+                {/* Login Page - No Sidebar/Header */}
                 <Route path="/login" element={<LoginPage setCustomerId={setCustomerId} />} />
-                {!customerId && <Route path="*" element={<Navigate to="/login" replace />} />}
+
+                {/* Protected Routes */}
+                <Route
+                    path="/*"
+                    element={
+                        customerId ? (
+                            <>
+                                <Header />
+                                <div className="d-flex">
+                                    <Sidebar
+                                        onLogout={() => {
+                                            localStorage.clear();
+                                            setCustomerId(null);
+                                            setData(null);
+                                        }}
+                                    />
+                                    <div className="p-4 flex-grow-1">
+                                        <Routes>
+                                            <Route path="/" element={<UploadPage setData={updateData} customerId={customerId} />} />
+                                            <Route path="/data" element={<DataPage data={data} />} />
+                                            <Route path="/renewals" element={<RenewalsPage customerId={customerId} />} />
+                                            <Route path="*" element={<Navigate to="/" replace />} />
+                                        </Routes>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <Navigate to="/login" replace />
+                        )
+                    }
+                />
             </Routes>
         </Router>
     );

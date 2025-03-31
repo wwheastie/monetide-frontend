@@ -1,16 +1,8 @@
 import { Nav } from "react-bootstrap";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const Sidebar = ({ setCustomerId }: { setCustomerId: (id: string | null) => void }) => {
+const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
     const location = useLocation();
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("customerId");
-        setCustomerId(null);
-        navigate("/login", { replace: true });
-    };
 
     return (
         <div className="sidebar d-flex flex-column">
@@ -42,7 +34,7 @@ const Sidebar = ({ setCustomerId }: { setCustomerId: (id: string | null) => void
                 </Nav>
             </div>
 
-            <button className="sidebar-logout" onClick={handleLogout}>
+            <button className="sidebar-logout" onClick={onLogout}>
                 Logout
             </button>
         </div>

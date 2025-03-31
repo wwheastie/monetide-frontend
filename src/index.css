@@ -162,9 +162,9 @@ html, body {
   max-width: 200px;
 }
 
-/* View Data Page - Adjust Tabs Spacing */
 .data-page {
-  padding-top: 90px; /* Space below header */
+  padding-top: 5rem;
+  margin-top: 3rem;
 }
 
 /* Adjust Space Between Header and Tabs */
