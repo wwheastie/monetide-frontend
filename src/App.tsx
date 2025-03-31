@@ -6,6 +6,7 @@ import UploadPage from "./pages/UploadPage";
 import DataPage from "./pages/DataPage";
 import LoginPage from "./pages/LoginPage";
 import "bootstrap/dist/css/bootstrap.min.css";
+import RenewalsPage from "./pages/RenewalsPage.tsx";
 
 const App = () => {
     const [data, setData] = useState<any>(() => {
@@ -44,6 +45,7 @@ const App = () => {
                             <Routes>
                                 <Route path="/" element={<UploadPage setData={updateData} customerId={customerId} />} />
                                 <Route path="/data" element={<DataPage data={data} />} />
+                                <Route path="/renewals" element={<RenewalsPage customerId={customerId}/>} />
                                 <Route path="*" element={<Navigate to="/" replace />} /> {/* Catch-all redirect */}
                             </Routes>
                         </div>

@@ -8,7 +8,7 @@ const Sidebar = ({ setCustomerId }: { setCustomerId: (id: string | null) => void
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("customerId");
-        setCustomerId(null); // Clear state
+        setCustomerId(null);
         navigate("/login", { replace: true });
     };
 
@@ -31,6 +31,13 @@ const Sidebar = ({ setCustomerId }: { setCustomerId: (id: string | null) => void
                         className={`sidebar-link ${location.pathname === "/data" ? "active-link" : ""}`}
                     >
                         View Data
+                    </Nav.Link>
+                    <Nav.Link
+                        as={Link}
+                        to="/renewals"
+                        className={`sidebar-link ${location.pathname === "/renewals" ? "active-link" : ""}`}
+                    >
+                        Renewal Groups
                     </Nav.Link>
                 </Nav>
             </div>

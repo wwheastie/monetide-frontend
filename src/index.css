@@ -164,7 +164,7 @@ html, body {
 
 /* View Data Page - Adjust Tabs Spacing */
 .data-page {
-  padding-top: 20px; /* Space below header */
+  padding-top: 90px; /* Space below header */
 }
 
 /* Adjust Space Between Header and Tabs */
@@ -304,3 +304,33 @@ html, body {
   background-color: #c9302c; /* Darker red on hover */
 }
 
+.renewals-tab-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.renewals-tab-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-arrow {
+  position: absolute;
+  top: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  z-index: 10;
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.tab-arrow.left {
+  left: 0;
+}
+
+.tab-arrow.right {
+  right: 0;
+}
