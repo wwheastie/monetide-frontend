@@ -7,6 +7,7 @@ const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; cus
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     // Handle file selection
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +38,7 @@ const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; cus
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/cohorts`, {
+            const response = await fetch(`${BASE_URL}/api/v1/customer/${customerId}/cohorts`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,

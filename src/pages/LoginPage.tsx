@@ -7,13 +7,15 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
 
         try {
-            const response = await fetch("http://localhost:8080/api/v1/login", {
+            const response = await fetch(`${BASE_URL}/api/v1/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),

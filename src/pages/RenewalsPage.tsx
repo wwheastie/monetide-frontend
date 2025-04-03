@@ -30,6 +30,7 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
     const [daysOfNotice, setDaysOfNotice] = useState<number>(60);
     const [generated, setGenerated] = useState(false);
     const [percentIncrease, setPercentIncrease] = useState<number>(0);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     useEffect(() => {
         const tabWrapper = document.querySelector(".renewals-tab-wrapper");
@@ -58,7 +59,7 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
 
     const handleGenerate = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/renewals`, {
+            const response = await fetch(`${BASE_URL}/api/v1/customer/${customerId}/renewals`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -104,6 +105,7 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
 
     const currentMRR = calculateCurrentMRR();
     const projectedMRR = currentMRR * (1 + percentIncrease / 100);
+    const increaseAmount = projectedMRR - currentMRR;
 
     const activeCohort = cohorts.find((c) => c.name === activeTab);
 
@@ -166,6 +168,11 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
                             <Form.Group>
                                 <Form.Label>Projected MRR</Form.Label>
                                 <Form.Control type="text" readOnly value={formatCurrency(projectedMRR)} style={{ pointerEvents: "none" }} />
+                            </Form.Group>
+
+                            <Form.Group>
+                                <Form.Label>Gross MRR Increase</Form.Label>
+                                <Form.Control type="text" readOnly value={formatCurrency(increaseAmount)} style={{ pointerEvents: "none" }} />
                             </Form.Group>
                         </div>
                     )}
