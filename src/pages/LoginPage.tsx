@@ -45,7 +45,7 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
         <div className="login-page">
             <div className="login-container">
                 {/* Logo Above the Login Box */}
-                <img src="/public/monetide-full.png" alt="Company Logo" className="login-logo" />
+                <img src="/monetide-full.png" alt="Company Logo" className="login-logo" />
 
                 <div className="login-content">
                     <h2 className="login-title">Login</h2>
