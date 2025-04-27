@@ -6,13 +6,14 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
+        setLoading(true);
 
         try {
             const response = await fetch(`${BASE_URL}/api/v1/login`, {
@@ -38,6 +39,8 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
             navigate("/", { replace: true });
         } catch {
             setError("Login failed. Please check your credentials.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -72,8 +75,8 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
                         </Form.Group>
 
                         {/* Styled Button with Aqua Color */}
-                        <Button type="submit" className="mt-3 login-button">
-                            Login
+                        <Button type="submit" className="mt-3 login-button" disabled={loading}>
+                            {loading ? "Logging in..." : "Login"}
                         </Button>
                     </Form>
                 </div>
