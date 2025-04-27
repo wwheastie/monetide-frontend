@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Container, Form, Row, Col, Dropdown, ButtonGroup, Table, Pagination } from "react-bootstrap";
+import { Container, Form, Dropdown, ButtonGroup, Table, Pagination } from "react-bootstrap";
 import { Scatter } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
