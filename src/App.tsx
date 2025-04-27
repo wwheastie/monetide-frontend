@@ -10,11 +10,28 @@ import SummaryPage from "./pages/SummaryPage";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ProtectedRoute } from './components/ProtectedRoute';
 
-// Define a type for the cached data if possible, otherwise use unknown
-// type CachedData = ...
+// Define a type for the cached data
+interface Customer {
+    monthlyRecurringRevenue: number;
+    previousMonthlyRecurringRevenue: number;
+    initialSubscriptionDate: string;
+    logins: number;
+    accountName: string;
+    engagementCostRatio: number;
+}
+interface Cohort {
+    name: string;
+    description?: string;
+    shortDescription?: string;
+    customers: Customer[];
+    uniqueCustomerCount: number;
+}
+interface CohortData {
+    cohorts: Cohort[];
+}
 
 const App = () => {
-    const [data, setData] = useState<unknown>(() => {
+    const [data, setData] = useState<CohortData | null>(() => {
         const cachedData = localStorage.getItem("cachedData");
         return cachedData ? JSON.parse(cachedData) : null;
     });
@@ -32,7 +49,7 @@ const App = () => {
         }
     }, []);
 
-    const updateData = (newData: unknown) => {
+    const updateData = (newData: CohortData) => {
         localStorage.setItem("cachedData", JSON.stringify(newData));
         setData(newData);
     };
@@ -69,7 +86,7 @@ const App = () => {
                                                     </ProtectedRoute>
                                                 }
                                             />
-                                            <Route path="/data" element={<DataPage data={data} />} />
+                                            {data && <Route path="/data" element={<DataPage data={data} />} />}
                                             <Route path="/renewals" element={<RenewalsPage customerId={customerId} />} />
                                             <Route path="*" element={<Navigate to="/" replace />} />
                                         </Routes>

@@ -2,7 +2,28 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Button, Form } from "react-bootstrap";
 
-const UploadPage = ({ setData, customerId }: { setData: (data: unknown) => void; customerId: string }) => {
+interface Customer {
+    monthlyRecurringRevenue: number;
+    previousMonthlyRecurringRevenue: number;
+    initialSubscriptionDate: string;
+    logins: number;
+    accountName: string;
+    engagementCostRatio: number;
+}
+
+interface Cohort {
+    name: string;
+    description?: string;
+    shortDescription?: string;
+    customers: Customer[];
+    uniqueCustomerCount: number;
+}
+
+interface CohortData {
+    cohorts: Cohort[];
+}
+
+const UploadPage = ({ setData, customerId }: { setData: (data: CohortData) => void; customerId: string }) => {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
