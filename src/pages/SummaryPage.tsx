@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Container, Form, Dropdown, ButtonGroup, Table, Pagination } from "react-bootstrap";
+import { Container, Form, Dropdown, ButtonGroup, Table, Pagination, Button } from "react-bootstrap";
 import { Scatter } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -95,22 +95,41 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
         return unique.map(obj => obj.label);
     }, [customers]);
 
+    // Update filter states when unique values change
+    useEffect(() => {
+        setSelectedRegions(uniqueRegions);
+        setSelectedSegments(uniqueSegments);
+        setSelectedRenewalManagers(uniqueRenewalManagers);
+        setSelectedRenewalTeams(uniqueRenewalTeams);
+        setSelectedRenewalDates(uniqueRenewalDates);
+    }, [uniqueRegions, uniqueSegments, uniqueRenewalManagers, uniqueRenewalTeams, uniqueRenewalDates]);
+
     // --- FILTERED CUSTOMERS ---
-    const filteredCustomers = useMemo(() =>
-        customers.filter(c =>
-            (selectedBuckets.length === 0 || selectedBuckets.includes(c["Bucket Name"])) &&
-            (selectedRegions.length === 0 || selectedRegions.includes(c["Region"])) &&
-            (selectedSegments.length === 0 || selectedSegments.includes(c["Segment"])) &&
-            (selectedRenewalManagers.length === 0 || selectedRenewalManagers.includes(c["Renewal Manager"])) &&
-            (selectedRenewalTeams.length === 0 || selectedRenewalTeams.includes(c["Renewal Team"])) &&
-            (selectedRenewalDates.length === 0 || selectedRenewalDates.includes((() => {
+    const filteredCustomers = useMemo(() => {
+        // If any filter is empty, return []
+        if (
+            selectedBuckets.length === 0 ||
+            selectedRegions.length === 0 ||
+            selectedSegments.length === 0 ||
+            selectedRenewalManagers.length === 0 ||
+            selectedRenewalTeams.length === 0 ||
+            selectedRenewalDates.length === 0
+        ) {
+            return [];
+        }
+        return customers.filter(c =>
+            selectedBuckets.includes(c["Bucket Name"]) &&
+            selectedRegions.includes(c["Region"]) &&
+            selectedSegments.includes(c["Segment"]) &&
+            selectedRenewalManagers.includes(c["Renewal Manager"]) &&
+            selectedRenewalTeams.includes(c["Renewal Team"]) &&
+            selectedRenewalDates.includes((() => {
                 const d = new Date(c["Managed Renewal Date"]);
                 if (isNaN(d.getTime())) return '';
                 return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            })()))
-        ),
-        [customers, selectedBuckets, selectedRegions, selectedSegments, selectedRenewalManagers, selectedRenewalTeams, selectedRenewalDates]
-    );
+            })())
+        );
+    }, [customers, selectedBuckets, selectedRegions, selectedSegments, selectedRenewalManagers, selectedRenewalTeams, selectedRenewalDates]);
 
     // --- PAGINATION STATE ---
     const [page, setPage] = useState(1);
@@ -125,29 +144,62 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     }, [filteredCustomers, totalPages, page]);
 
     // --- FILTER UI ---
-    const renderDropdownCheckboxGroup = (label: string, options: string[], selected: string[], setSelected: (v: string[]) => void) => (
-        <Dropdown as={ButtonGroup} className="me-2 mb-2" autoClose="outside">
-            <Dropdown.Toggle variant="secondary" style={{ minWidth: 180, textAlign: 'left', background: '#222', border: '1px solid #333' }}>
-                <b>{label}</b>
-            </Dropdown.Toggle>
-            <Dropdown.Menu style={{ maxHeight: 220, overflowY: 'auto', background: '#111', color: '#fff', minWidth: 220 }}>
-                {options.map(opt => (
-                    <Form.Check
-                        key={opt}
-                        type="checkbox"
-                        id={`${label}-${opt}`}
-                        label={opt}
-                        checked={selected.includes(opt)}
-                        onChange={e => {
-                            if (e.target.checked) setSelected([...selected, opt]);
-                            else setSelected(selected.filter(v => v !== opt));
-                        }}
-                        style={{ color: '#fff', marginLeft: 8, marginBottom: 4 }}
-                    />
-                ))}
-            </Dropdown.Menu>
-        </Dropdown>
-    );
+    const renderDropdownCheckboxGroup = (
+        label: string,
+        options: string[],
+        selected: string[],
+        setSelected: (v: string[]) => void,
+        order?: string[]
+    ) => {
+        const sortedOptions = order
+            ? order.filter(opt => options.includes(opt)).concat(options.filter(opt => !order.includes(opt)).sort())
+            : [...options].sort();
+        return (
+            <Dropdown as={ButtonGroup} className="me-2 mb-2" autoClose="outside">
+                <Dropdown.Toggle variant="secondary" style={{ minWidth: 180, textAlign: 'left', background: '#222', border: '1px solid #333' }}>
+                    <b>{label}</b>
+                </Dropdown.Toggle>
+                <Dropdown.Menu style={{ maxHeight: 220, overflowY: 'auto', background: '#111', color: '#fff', minWidth: 220 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Button
+                            variant="link"
+                            size="sm"
+                            style={{ color: '#0af', fontWeight: 500, fontSize: 13, padding: 0, textDecoration: 'none' }}
+                            onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelected([...sortedOptions]);
+                            }}
+                        >Select All</Button>
+                        <Button
+                            variant="link"
+                            size="sm"
+                            style={{ color: '#f55', fontWeight: 500, fontSize: 13, padding: 0, textDecoration: 'none' }}
+                            onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelected([]);
+                            }}
+                        >Deselect All</Button>
+                    </div>
+                    {sortedOptions.map(opt => (
+                        <Form.Check
+                            key={opt}
+                            type="checkbox"
+                            id={`${label}-${opt}`}
+                            label={opt}
+                            checked={selected.includes(opt)}
+                            onChange={e => {
+                                if (e.target.checked) setSelected([...selected, opt]);
+                                else setSelected(selected.filter(v => v !== opt));
+                            }}
+                            style={{ color: '#fff', marginLeft: 8, marginBottom: 4 }}
+                        />
+                    ))}
+                </Dropdown.Menu>
+            </Dropdown>
+        );
+    };
 
     useEffect(() => {
         const fetchCustomers = async () => {
@@ -317,7 +369,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 maxWidth: '1800px',
                 minWidth: '1400px',
             }}>
-                {renderDropdownCheckboxGroup('Buckets', uniqueBuckets, selectedBuckets, setSelectedBuckets)}
+                {renderDropdownCheckboxGroup('Buckets', uniqueBuckets, selectedBuckets, setSelectedBuckets, BUCKET_ORDER)}
                 {renderDropdownCheckboxGroup('Region', uniqueRegions, selectedRegions, setSelectedRegions)}
                 {renderDropdownCheckboxGroup('Segment', uniqueSegments, selectedSegments, setSelectedSegments)}
                 {renderDropdownCheckboxGroup('Managed Renewal Dates', uniqueRenewalDates, selectedRenewalDates, setSelectedRenewalDates)}
