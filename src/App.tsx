@@ -10,8 +10,11 @@ import SummaryPage from "./pages/SummaryPage";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+// Define a type for the cached data if possible, otherwise use unknown
+// type CachedData = ...
+
 const App = () => {
-    const [data, setData] = useState<any>(() => {
+    const [data, setData] = useState<unknown>(() => {
         const cachedData = localStorage.getItem("cachedData");
         return cachedData ? JSON.parse(cachedData) : null;
     });
@@ -29,7 +32,7 @@ const App = () => {
         }
     }, []);
 
-    const updateData = (newData: any) => {
+    const updateData = (newData: unknown) => {
         localStorage.setItem("cachedData", JSON.stringify(newData));
         setData(newData);
     };

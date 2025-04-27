@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Button, Form } from "react-bootstrap";
 
-const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; customerId: string }) => {
+const UploadPage = ({ setData, customerId }: { setData: (data: unknown) => void; customerId: string }) => {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();

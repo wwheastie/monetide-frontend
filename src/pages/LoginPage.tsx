@@ -36,7 +36,7 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
 
             // Redirect to Upload Page
             navigate("/", { replace: true });
-        } catch (err) {
+        } catch {
             setError("Login failed. Please check your credentials.");
         }
     };

@@ -81,7 +81,7 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
             setActiveTab(json.renewalCohorts?.[0]?.name || "");
             setError(null);
             setGenerated(true);
-        } catch (err) {
+        } catch {
             setError("An error occurred while loading renewals.");
         }
     };

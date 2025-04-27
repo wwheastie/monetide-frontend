@@ -23,6 +23,11 @@ const DEFAULT_PAGE_SIZE = 5;
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
+    const [pagination, setPagination] = useState<{ [key: number]: { page: number; pageSize: number } }>(
+        Object.fromEntries(data && data.cohorts ? data.cohorts.map((_, index) => [index, { page: 1, pageSize: DEFAULT_PAGE_SIZE }]) : [])
+    );
+    const [activeTab, setActiveTab] = useState(data && data.cohorts && data.cohorts[0]?.name || "");
+
     if (!data || !data.cohorts || data.cohorts.length === 0) {
         return (
             <Container className="mt-4">
@@ -31,12 +36,6 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
             </Container>
         );
     }
-
-    const [pagination, setPagination] = useState<{ [key: number]: { page: number; pageSize: number } }>(
-        Object.fromEntries(data.cohorts.map((_, index) => [index, { page: 1, pageSize: DEFAULT_PAGE_SIZE }]))
-    );
-
-    const [activeTab, setActiveTab] = useState(data.cohorts[0]?.name || "");
 
     const handlePageChange = (cohortIndex: number, newPage: number) => {
         setPagination((prev) => ({

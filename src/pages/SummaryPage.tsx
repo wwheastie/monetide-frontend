@@ -24,6 +24,7 @@ interface Customer {
     "MRR Score": number;
     "Bucket Name": string;
     "Initial Subscription": string;
+    [key: string]: string | number; // Add index signature for table rendering
 }
 
 const BUCKET_ORDER = [
@@ -70,12 +71,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     const uniqueRenewalManagers = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Manager"]))).filter(Boolean), [customers]);
     const uniqueRenewalTeams = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Team"]))).filter(Boolean), [customers]);
     const uniqueRenewalDates = useMemo(() => {
-        const format = (dateStr: string) => {
-            if (!dateStr) return '';
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return '';
-            return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-        };
         // Map to { label, date } for sorting
         const dateObjs = customers
             .map(c => c["Managed Renewal Date"])
@@ -127,7 +122,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     // Reset to first page if filters change and current page is out of range
     useEffect(() => {
         if (page > totalPages) setPage(1);
-    }, [filteredCustomers, totalPages]);
+    }, [filteredCustomers, totalPages, page]);
 
     // --- FILTER UI ---
     const renderDropdownCheckboxGroup = (label: string, options: string[], selected: string[], setSelected: (v: string[]) => void) => (
@@ -193,7 +188,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
         data: filteredCustomers
             .filter(c => c["Bucket Name"] === bucket)
             .map(c => {
-                let x = c["Adoption Score"] === 0 ? xOffset : c["Adoption Score"];
+                const x = c["Adoption Score"] === 0 ? xOffset : c["Adoption Score"];
                 let y = c["MRR Score"];
                 if (y === 0) y = yOffset;
                 if (y === 1) y = 1 - yOffset;
@@ -226,9 +221,9 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             },
             tooltip: {
                 callbacks: {
-                    label: function(context: any) {
+                    label: function(context: import('chart.js').TooltipItem<'scatter'>) {
                         const dataset = context.dataset.data;
-                        const point = dataset[context.dataIndex];
+                        const point = dataset[context.dataIndex] as unknown as { rawX: number; rawY: number };
                         const customer = customers.find(c =>
                             c["Adoption Score"] === point.rawX &&
                             c["MRR Score"] === point.rawY &&
@@ -385,7 +380,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                         {paginatedCustomers.map((customer, idx) => (
                             <tr key={idx}>
                                 {customerFields.map(field => (
-                                    <td key={field}>{(customer as any)[field]}</td>
+                                    <td key={field}>{customer[field]}</td>
                                 ))}
                             </tr>
                         ))}
