@@ -15,21 +15,21 @@ const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
                         to="/"
                         className={`sidebar-link ${location.pathname === "/" ? "active-link" : ""}`}
                     >
-                        Upload File
+                        Upload Data
                     </Nav.Link>
                     <Nav.Link
                         as={Link}
                         to="/data"
                         className={`sidebar-link ${location.pathname === "/data" ? "active-link" : ""}`}
                     >
-                        View Data
+                        View Cohorts
                     </Nav.Link>
                     <Nav.Link
                         as={Link}
                         to="/renewals"
                         className={`sidebar-link ${location.pathname === "/renewals" ? "active-link" : ""}`}
                     >
-                        Renewal Groups
+                        Uplift Forecasts
                     </Nav.Link>
                 </Nav>
             </div>

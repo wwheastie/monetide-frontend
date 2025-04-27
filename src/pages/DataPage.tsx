@@ -14,6 +14,7 @@ interface Customer {
 interface Cohort {
     name: string;
     description?: string;
+    shortDescription?: string;
     customers: Customer[];
     uniqueCustomerCount: number;
 }
@@ -35,7 +36,7 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
         Object.fromEntries(data.cohorts.map((_, index) => [index, { page: 1, pageSize: DEFAULT_PAGE_SIZE }]))
     );
 
-    const [activeTab, setActiveTab] = useState(data.cohorts[0]?.name || ""); // Default to first cohort
+    const [activeTab, setActiveTab] = useState(data.cohorts[0]?.name || "");
 
     const handlePageChange = (cohortIndex: number, newPage: number) => {
         setPagination((prev) => ({
@@ -52,10 +53,9 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
     };
 
     return (
-        <Container className="mt-4">
-            <h2>Uploaded Data</h2>
+        <Container className="data-page mt-4">
+            <h2>Customer Cohorts</h2>
 
-            {/* Tab Navigation */}
             <Tabs
                 id="cohort-tabs"
                 activeKey={activeTab}
@@ -71,7 +71,6 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                     return (
                         <Tab key={cohort.name} eventKey={cohort.name} title={cohort.name}>
                             <div key={cohortIndex} className="mb-4">
-                                {/* Table Header Section */}
                                 <div className="d-flex justify-content-between align-items-center mb-2">
                                     <div className="d-flex align-items-center">
                                         <h3 className="me-2">{cohort.name}</h3>
@@ -86,11 +85,13 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                                     </div>
                                 </div>
 
+                                {cohort.shortDescription && (
+                                    <p className="text-muted mb-3" style={{ whiteSpace: "pre-line" }}>{cohort.shortDescription}</p>
+                                )}
+
                                 {cohort.customers.length > 0 ? (
                                     <>
-                                        {/* Page Size Selector & Unique + Total Count */}
                                         <div className="d-flex justify-content-between align-items-start flex-column flex-md-row mb-2">
-                                            {/* Left: Rows per page selector */}
                                             <Form.Group className="d-flex align-items-center mb-2 mb-md-0">
                                                 <Form.Label className="me-2">Rows per page:</Form.Label>
                                                 <Form.Select
@@ -99,18 +100,15 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                                                     style={{ width: "100px" }}
                                                 >
                                                     {PAGE_SIZE_OPTIONS.map((size) => (
-                                                        <option key={size} value={size}>
-                                                            {size}
-                                                        </option>
+                                                        <option key={size} value={size}>{size}</option>
                                                     ))}
                                                 </Form.Select>
                                             </Form.Group>
 
-                                            {/* Right: Total | Unique */}
-                                            <div className="text-muted d-flex gap-3 align-items-center">
-                                                <span>Total: {cohort.customers.length} customers</span>
-                                                <span>|</span>
-                                                <span>Unique: {cohort.uniqueCustomerCount} customers</span>
+                                            <div className="text-end d-flex flex-row align-items-center gap-3">
+                                                <span className="text-muted">Total: {cohort.customers.length} customers</span>
+                                                <span className="text-muted">|</span>
+                                                <span className="text-muted">Unique: {cohort.uniqueCustomerCount} customers</span>
                                             </div>
                                         </div>
 
@@ -126,18 +124,13 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                                             {displayedCustomers.map((customer, customerIndex) => (
                                                 <tr key={customerIndex}>
                                                     {Object.values(customer).map((value, colIndex) => (
-                                                        <td key={colIndex}>
-                                                            {typeof value === "number"
-                                                                ? value.toFixed(2)
-                                                                : value}
-                                                        </td>
+                                                        <td key={colIndex}>{typeof value === "number" ? value.toFixed(2) : value}</td>
                                                     ))}
                                                 </tr>
                                             ))}
                                             </tbody>
                                         </Table>
 
-                                        {/* Pagination Controls */}
                                         {totalPages > 1 && (
                                             <div className="d-flex justify-content-between align-items-center">
                                                 <Button
@@ -147,9 +140,7 @@ const DataPage = ({ data }: { data: { cohorts: Cohort[] } }) => {
                                                 >
                                                     Previous
                                                 </Button>
-                                                <span>
-                                                    Page {page} of {totalPages}
-                                                </span>
+                                                <span>Page {page} of {totalPages}</span>
                                                 <Button
                                                     variant="secondary"
                                                     onClick={() => handlePageChange(cohortIndex, page + 1)}

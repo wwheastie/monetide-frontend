@@ -111,7 +111,7 @@ const RenewalsPage = ({ customerId }: { customerId: string }) => {
 
     return (
         <Container className="data-page mt-4">
-            <h2 className="mb-4">Renewals</h2>
+            <h2 className="mb-4">Uplift Forecasts</h2>
 
             <Form className="mb-4">
                 <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end gap-3">
