@@ -6,7 +6,9 @@ import UploadPage from "./pages/UploadPage";
 import DataPage from "./pages/DataPage";
 import LoginPage from "./pages/LoginPage";
 import RenewalsPage from "./pages/RenewalsPage";
+import SummaryPage from "./pages/SummaryPage";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 const App = () => {
     const [data, setData] = useState<any>(() => {
@@ -53,9 +55,17 @@ const App = () => {
                                             setData(null);
                                         }}
                                     />
-                                    <div className="p-4 flex-grow-1">
+                                    <div className="main-content">
                                         <Routes>
                                             <Route path="/" element={<UploadPage setData={updateData} customerId={customerId} />} />
+                                            <Route
+                                                path="/summary"
+                                                element={
+                                                    <ProtectedRoute customerId={customerId}>
+                                                        <SummaryPage customerId={customerId} />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
                                             <Route path="/data" element={<DataPage data={data} />} />
                                             <Route path="/renewals" element={<RenewalsPage customerId={customerId} />} />
                                             <Route path="*" element={<Navigate to="/" replace />} />

@@ -38,7 +38,7 @@ const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; cus
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`${BASE_URL}/api/v1/customer/${customerId}/cohorts`, {
+            const response = await fetch(`${BASE_URL}/api/v1/customer/${customerId}/upload`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData,
@@ -48,7 +48,7 @@ const UploadPage = ({ setData, customerId }: { setData: (data: any) => void; cus
 
             const data = await response.json();
             setData(data); // Cache data
-            navigate("/data"); // Redirect to Data Page
+            navigate("/summary"); // Redirect to Summary Page
         } catch (error) {
             console.error("Upload failed:", error);
             alert("Error uploading file");

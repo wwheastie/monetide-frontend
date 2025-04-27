@@ -19,17 +19,10 @@ const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
                     </Nav.Link>
                     <Nav.Link
                         as={Link}
-                        to="/data"
-                        className={`sidebar-link ${location.pathname === "/data" ? "active-link" : ""}`}
+                        to="/summary"
+                        className={`sidebar-link ${location.pathname === "/summary" ? "active-link" : ""}`}
                     >
-                        View Cohorts
-                    </Nav.Link>
-                    <Nav.Link
-                        as={Link}
-                        to="/renewals"
-                        className={`sidebar-link ${location.pathname === "/renewals" ? "active-link" : ""}`}
-                    >
-                        Uplift Forecasts
+                        Summary
                     </Nav.Link>
                 </Nav>
             </div>
