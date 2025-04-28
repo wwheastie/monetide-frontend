@@ -58,7 +58,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     const [error, setError] = useState<string | null>(null);
 
     // --- FILTER STATE ---
-    const [selectedBuckets, setSelectedBuckets] = useState<string[]>(BUCKET_ORDER);
+    const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
     const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
     const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
     const [selectedRenewalManagers, setSelectedRenewalManagers] = useState<string[]>([]);
@@ -96,39 +96,30 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
         return unique.map(obj => obj.label);
     }, [customers]);
 
-    // Update filter states when unique values change
-    useEffect(() => {
-        setSelectedRegions(uniqueRegions);
-        setSelectedSegments(uniqueSegments);
-        setSelectedRenewalManagers(uniqueRenewalManagers);
-        setSelectedRenewalTeams(uniqueRenewalTeams);
-        setSelectedRenewalDates(uniqueRenewalDates);
-    }, [uniqueRegions, uniqueSegments, uniqueRenewalManagers, uniqueRenewalTeams, uniqueRenewalDates]);
-
     // --- FILTERED CUSTOMERS ---
     const filteredCustomers = useMemo(() => {
-        // If any filter is empty, return []
+        // If no filters are selected, return all customers
         if (
-            selectedBuckets.length === 0 ||
-            selectedRegions.length === 0 ||
-            selectedSegments.length === 0 ||
-            selectedRenewalManagers.length === 0 ||
-            selectedRenewalTeams.length === 0 ||
+            selectedBuckets.length === 0 &&
+            selectedRegions.length === 0 &&
+            selectedSegments.length === 0 &&
+            selectedRenewalManagers.length === 0 &&
+            selectedRenewalTeams.length === 0 &&
             selectedRenewalDates.length === 0
         ) {
-            return [];
+            return customers;
         }
         return customers.filter(c =>
-            selectedBuckets.includes(c["Bucket Name"]) &&
-            selectedRegions.includes(c["Region"]) &&
-            selectedSegments.includes(c["Segment"]) &&
-            selectedRenewalManagers.includes(c["Renewal Manager"]) &&
-            selectedRenewalTeams.includes(c["Renewal Team"]) &&
-            selectedRenewalDates.includes((() => {
+            (selectedBuckets.length === 0 || selectedBuckets.includes(c["Bucket Name"])) &&
+            (selectedRegions.length === 0 || selectedRegions.includes(c["Region"])) &&
+            (selectedSegments.length === 0 || selectedSegments.includes(c["Segment"])) &&
+            (selectedRenewalManagers.length === 0 || selectedRenewalManagers.includes(c["Renewal Manager"])) &&
+            (selectedRenewalTeams.length === 0 || selectedRenewalTeams.includes(c["Renewal Team"])) &&
+            (selectedRenewalDates.length === 0 || selectedRenewalDates.includes((() => {
                 const d = new Date(c["Managed Renewal Date"]);
                 if (isNaN(d.getTime())) return '';
                 return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            })())
+            })()))
         );
     }, [customers, selectedBuckets, selectedRegions, selectedSegments, selectedRenewalManagers, selectedRenewalTeams, selectedRenewalDates]);
 
@@ -149,40 +140,15 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
         label: string,
         options: string[],
         selected: string[],
-        setSelected: (v: string[]) => void,
-        order?: string[]
+        setSelected: (v: string[]) => void
     ) => {
-        const sortedOptions = order
-            ? order.filter(opt => options.includes(opt)).concat(options.filter(opt => !order.includes(opt)).sort())
-            : [...options].sort();
+        const sortedOptions = [...options].sort();
         return (
             <Dropdown as={ButtonGroup} className="me-2 mb-2" autoClose="outside">
                 <Dropdown.Toggle variant="secondary" style={{ minWidth: 180, textAlign: 'left', background: '#222', border: '1px solid #333' }}>
                     <b>{label}</b>
                 </Dropdown.Toggle>
                 <Dropdown.Menu style={{ maxHeight: 220, overflowY: 'auto', background: '#111', color: '#fff', minWidth: 220 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <Button
-                            variant="link"
-                            size="sm"
-                            style={{ color: '#0af', fontWeight: 500, fontSize: 13, padding: 0, textDecoration: 'none' }}
-                            onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSelected([...sortedOptions]);
-                            }}
-                        >Select All</Button>
-                        <Button
-                            variant="link"
-                            size="sm"
-                            style={{ color: '#f55', fontWeight: 500, fontSize: 13, padding: 0, textDecoration: 'none' }}
-                            onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSelected([]);
-                            }}
-                        >Deselect All</Button>
-                    </div>
                     {sortedOptions.map(opt => (
                         <Form.Check
                             key={opt}
@@ -370,7 +336,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 maxWidth: '1800px',
                 minWidth: '1400px',
             }}>
-                {renderDropdownCheckboxGroup('Buckets', uniqueBuckets, selectedBuckets, setSelectedBuckets, BUCKET_ORDER)}
+                {renderDropdownCheckboxGroup('Buckets', uniqueBuckets, selectedBuckets, setSelectedBuckets)}
                 {renderDropdownCheckboxGroup('Region', uniqueRegions, selectedRegions, setSelectedRegions)}
                 {renderDropdownCheckboxGroup('Segment', uniqueSegments, selectedSegments, setSelectedSegments)}
                 {renderDropdownCheckboxGroup('Managed Renewal Dates', uniqueRenewalDates, selectedRenewalDates, setSelectedRenewalDates)}
