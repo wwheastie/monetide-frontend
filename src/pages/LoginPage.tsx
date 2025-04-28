@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
+import {API_BASE_URL} from "../config.ts";
 
 const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) => {
     const [email, setEmail] = useState("");
@@ -8,7 +9,6 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,7 +16,7 @@ const LoginPage = ({ setCustomerId }: { setCustomerId: (id: string) => void }) =
         setLoading(true);
 
         try {
-            const response = await fetch(`${BASE_URL}/api/v1/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/v1/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
