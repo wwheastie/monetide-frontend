@@ -9,6 +9,7 @@ import {
     Legend,
     Title
 } from 'chart.js';
+import { API_BASE_URL } from '../config';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
@@ -204,7 +205,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
-                const response = await fetch(`http://localhost:8080/api/v1/customer/${customerId}/customers`, {
+                const response = await fetch(`${API_BASE_URL}/api/v1/customer/${customerId}/customers`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
