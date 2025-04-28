@@ -83,7 +83,19 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
 
     // --- UNIQUE VALUES FOR FILTERS ---
     const uniqueBuckets = useMemo(() => Array.from(new Set(customers.map(c => c["Bucket Name"]))).filter(Boolean), [customers]);
-    const uniqueRegions = useMemo(() => Array.from(new Set(customers.map(c => c["Region"]))).filter(Boolean), [customers]);
+    const uniqueRegions = useMemo(() => {
+        const regionCounts = customers.reduce((acc, customer) => {
+            const region = customer["Region"];
+            if (region) {
+                acc[region] = (acc[region] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(regionCounts)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .map(([region]) => region);
+    }, [customers]);
     const uniqueSegments = useMemo(() => Array.from(new Set(customers.map(c => c["Segment"]))).filter(Boolean), [customers]);
     const uniqueRenewalManagers = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Manager"]))).filter(Boolean), [customers]);
     const uniqueRenewalTeams = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Team"]))).filter(Boolean), [customers]);
@@ -160,7 +172,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     ) => {
         const sortedOptions = label === 'Buckets' 
             ? BUCKET_ORDER.filter(opt => options.includes(opt))
-            : [...options].sort();
+            : options; // Use the pre-sorted options for regions
         return (
             <Dropdown as={ButtonGroup} className="me-2 mb-2" autoClose="outside">
                 <Dropdown.Toggle variant="secondary" style={{ minWidth: 180, textAlign: 'left', background: '#222', border: '1px solid #333' }}>
