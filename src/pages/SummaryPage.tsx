@@ -25,6 +25,8 @@ interface Customer {
     "MRR Score": number;
     "Bucket Name": string;
     "Initial Subscription": string;
+    "users": number;
+    "logins": number;
     [key: string]: string | number; // Add index signature for table rendering
 }
 
@@ -78,7 +80,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     const [selectedRenewalDates, setSelectedRenewalDates] = useState<string[]>([]);
 
     // --- CHURN CALCULATION STATE ---
-    const [priceIncrease, setPriceIncrease] = useState(0.17); // 17%
+    const [priceIncrease, setPriceIncrease] = useState(0.20); // 20%
     const [variableChurnBaseline, setVariableChurnBaseline] = useState(0.10); // 10%
 
     // --- UNIQUE VALUES FOR FILTERS ---
@@ -96,7 +98,19 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             .sort(([, countA], [, countB]) => countB - countA)
             .map(([region]) => region);
     }, [customers]);
-    const uniqueSegments = useMemo(() => Array.from(new Set(customers.map(c => c["Segment"]))).filter(Boolean), [customers]);
+    const uniqueSegments = useMemo(() => {
+        const segmentCounts = customers.reduce((acc, customer) => {
+            const segment = customer["Segment"];
+            if (segment) {
+                acc[segment] = (acc[segment] || 0) + 1;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+
+        return Object.entries(segmentCounts)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .map(([segment]) => segment);
+    }, [customers]);
     const uniqueRenewalManagers = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Manager"]))).filter(Boolean), [customers]);
     const uniqueRenewalTeams = useMemo(() => Array.from(new Set(customers.map(c => c["Renewal Team"]))).filter(Boolean), [customers]);
     const uniqueRenewalDates = useMemo(() => {
@@ -281,8 +295,10 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                         if (!customer) return '';
                         return [
                             `Account: ${customer["Account Name"]}`,
-                            `Adoption Score: ${customer["Adoption Score"]}`,
-                            `MRR Score: ${customer["MRR Score"]}`,
+                            `Current MRR: $${customer["Monthly Recurring Revenue"].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                            `Number of Users: ${customer["users"]}`,
+                            `Logins 90 Days: ${customer["logins"]}`,
+                            `Initial Subscription: ${customer["Initial Subscription"]}`,
                             `Bucket: ${customer["Bucket Name"]}`
                         ];
                     }
@@ -420,8 +436,8 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 {renderDropdownCheckboxGroup('Region', uniqueRegions, selectedRegions, setSelectedRegions)}
                 {renderDropdownCheckboxGroup('Segment', uniqueSegments, selectedSegments, setSelectedSegments)}
                 {renderDropdownCheckboxGroup('Managed Renewal Dates', uniqueRenewalDates, selectedRenewalDates, setSelectedRenewalDates)}
-                {renderDropdownCheckboxGroup('Renewal Manager', uniqueRenewalManagers, selectedRenewalManagers, setSelectedRenewalManagers)}
                 {renderDropdownCheckboxGroup('Renewal Team', uniqueRenewalTeams, selectedRenewalTeams, setSelectedRenewalTeams)}
+                {renderDropdownCheckboxGroup('Renewal Manager', uniqueRenewalManagers, selectedRenewalManagers, setSelectedRenewalManagers)}
             </div>
 
             {/* Churn Risk Summary Table */}
