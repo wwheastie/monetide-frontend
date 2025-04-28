@@ -41,15 +41,15 @@ const BUCKET_ORDER = [
 ];
 
 const BUCKET_COLORS: Record<string, string> = {
-    "Engaged High-Value": "#d73027",      // Red
-    "Engaged Mid-Value": "#fc8d59",       // Orange-Red
-    "Engaged Low-Value": "#fee08b",       // Yellow
-    "Moderate High-Value": "#fdae61",     // Orange
-    "Moderate Mid-Value": "#ffffbf",      // Light Yellow
-    "Moderate Low-Value": "#d9ef8b",      // Yellow-Green
-    "Disengaged High-Value": "#91cf60",   // Light Green
-    "Disengaged Mid-Value": "#1a9850",    // Green
-    "Disengaged Low-Value": "#006837"     // Dark Green
+    "Engaged High-Value": "#006837",      // Dark Green
+    "Engaged Mid-Value": "#1a9850",       // Green
+    "Engaged Low-Value": "#91cf60",       // Light Green
+    "Moderate High-Value": "#ffffbf",     // Light Yellow
+    "Moderate Mid-Value": "#d9ef8b",      // Yellow-Green
+    "Moderate Low-Value": "#fee08b",      // Yellow
+    "Disengaged High-Value": "#fc8d59",   // Orange-Red
+    "Disengaged Mid-Value": "#d73027",    // Red
+    "Disengaged Low-Value": "#a50026"     // Dark Red
 };
 
 const CHURN_MULTIPLIERS: Record<string, { worst: number; realistic: number; best: number }> = {
