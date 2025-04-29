@@ -494,8 +494,11 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                                 min="0"
                                 max="100"
                                 step="1"
-                                value={variableChurnBaseline * 100}
-                                onChange={(e) => setVariableChurnBaseline(Number(e.target.value) / 100)}
+                                value={Math.round(variableChurnBaseline * 100)}
+                                onChange={(e) => {
+                                    const value = Math.min(100, Math.max(0, Number(e.target.value)));
+                                    setVariableChurnBaseline(value / 100);
+                                }}
                                 style={{
                                     marginLeft: '8px',
                                     width: '60px',
