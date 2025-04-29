@@ -168,14 +168,27 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     // --- PAGINATION STATE ---
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const totalRows = filteredCustomers.length;
-    const totalPages = Math.ceil(totalRows / pageSize);
-    const paginatedCustomers = filteredCustomers.slice((page - 1) * pageSize, page * pageSize);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    // Reset to first page if filters change and current page is out of range
+    // Filter customers based on search query
+    const searchedCustomers = useMemo(() => {
+        if (!searchQuery) return filteredCustomers;
+        const query = searchQuery.toLowerCase();
+        return filteredCustomers.filter(customer => 
+            Object.values(customer).some(value => 
+                String(value).toLowerCase().includes(query)
+            )
+        );
+    }, [filteredCustomers, searchQuery]);
+
+    const paginatedCustomers = searchedCustomers.slice((page - 1) * pageSize, page * pageSize);
+    const totalFilteredRows = searchedCustomers.length;
+    const totalFilteredPages = Math.ceil(totalFilteredRows / pageSize);
+
+    // Reset to first page if filters or search change and current page is out of range
     useEffect(() => {
-        if (page > totalPages) setPage(1);
-    }, [filteredCustomers, totalPages, page]);
+        if (page > totalFilteredPages) setPage(1);
+    }, [searchedCustomers, totalFilteredPages, page]);
 
     // --- FILTER UI ---
     const renderDropdownCheckboxGroup = (
@@ -496,16 +509,19 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                         </div>
                     </div>
                 </div>
-                <Table striped bordered hover size="sm" responsive style={{ background: '#111', color: '#fff' }}>
+                <Table striped bordered hover size="sm" responsive style={{ 
+                    background: '#111', 
+                    color: '#fff'
+                }}>
                     <thead>
                         <tr>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Bucket</th>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Customer Count</th>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Total MRR</th>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Average MRR</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000', borderLeft: '6px solid #666', paddingLeft: '16px' }}>Worst Case</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Realistic Case</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Best Case</th>
+                            <th style={{ background: '#fff', borderColor: '#333', color: '#000', borderLeft: '6px solid #666', paddingLeft: '16px' }}>Worst Case Incremental MRR</th>
+                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Realistic Incremental MRR</th>
+                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Best Case Incremental MRR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -588,23 +604,75 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 </div>
             </div>
             {/* Customer Table outside chart area */}
-            <div style={{ marginTop: 40, marginLeft: '200px', width: 'calc(100vw - 200px)', maxWidth: '1200px', overflowX: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <span style={{ fontWeight: 500 }}>Showing {Math.min((page - 1) * pageSize + 1, totalRows)} - {Math.min(page * pageSize, totalRows)} of {totalRows} customers</span>
+            <div style={{ 
+                marginTop: 40, 
+                marginLeft: '200px', 
+                width: 'calc(100vw - 200px)', 
+                maxWidth: '1200px', 
+                overflowX: 'auto',
+                background: '#000',
+                padding: '24px',
+                borderRadius: 12,
+                boxShadow: '0 0 24px #0008',
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Search customers..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #333',
+                                    background: '#111',
+                                    color: '#fff',
+                                    width: '300px'
+                                }}
+                            />
+                        </div>
+                        <span style={{ fontWeight: 500, color: '#fff' }}>
+                            Showing {Math.min((page - 1) * pageSize + 1, totalFilteredRows)} - {Math.min(page * pageSize, totalFilteredRows)} of {totalFilteredRows} customers
+                        </span>
+                    </div>
                     <div>
-                        <label style={{ marginRight: 8 }}>Rows per page:</label>
-                        <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>
+                        <label style={{ marginRight: 8, color: '#fff' }}>Rows per page:</label>
+                        <select 
+                            value={pageSize} 
+                            onChange={e => { 
+                                setPageSize(Number(e.target.value)); 
+                                setPage(1); 
+                            }}
+                            style={{
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                border: '1px solid #333',
+                                background: '#111',
+                                color: '#fff'
+                            }}
+                        >
                             {[10, 20, 50, 100].map(size => (
                                 <option key={size} value={size}>{size}</option>
                             ))}
                         </select>
                     </div>
                 </div>
-                <Table striped bordered hover size="sm" responsive style={{ background: '#fff', minWidth: 900 }}>
+                <Table striped bordered hover size="sm" responsive style={{ 
+                    background: '#111', 
+                    color: '#fff'
+                }}>
                     <thead>
                         <tr>
                             {customerFields.map(field => (
-                                <th key={field}>{field}</th>
+                                <th key={field} style={{ 
+                                    background: '#fff', 
+                                    borderColor: '#333', 
+                                    color: '#000'
+                                }}>
+                                    {field}
+                                </th>
                             ))}
                         </tr>
                     </thead>
@@ -612,7 +680,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                         {paginatedCustomers.map((customer, idx) => (
                             <tr key={idx}>
                                 {customerFields.map(field => (
-                                    <td key={field}>{customer[field]}</td>
+                                    <td key={field} style={{ borderColor: '#333' }}>{customer[field]}</td>
                                 ))}
                             </tr>
                         ))}
@@ -620,17 +688,55 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 </Table>
                 {/* Pagination Controls */}
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-                    <Pagination>
-                        <Pagination.First onClick={() => setPage(1)} disabled={page === 1} />
-                        <Pagination.Prev onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} />
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).slice(Math.max(0, page - 3), Math.min(totalPages, page + 2)).map(pn => (
-                            <Pagination.Item key={pn} active={pn === page} onClick={() => setPage(pn)}>{pn}</Pagination.Item>
+                    <Pagination className="custom-pagination">
+                        <Pagination.First 
+                            onClick={() => setPage(1)} 
+                            disabled={page === 1}
+                        />
+                        <Pagination.Prev 
+                            onClick={() => setPage(p => Math.max(1, p - 1))} 
+                            disabled={page === 1}
+                        />
+                        {Array.from({ length: totalFilteredPages }, (_, i) => i + 1).slice(Math.max(0, page - 3), Math.min(totalFilteredPages, page + 2)).map(pn => (
+                            <Pagination.Item 
+                                key={pn} 
+                                active={pn === page} 
+                                onClick={() => setPage(pn)}
+                            >
+                                {pn}
+                            </Pagination.Item>
                         ))}
-                        <Pagination.Next onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} />
-                        <Pagination.Last onClick={() => setPage(totalPages)} disabled={page === totalPages} />
+                        <Pagination.Next 
+                            onClick={() => setPage(p => Math.min(totalFilteredPages, p + 1))} 
+                            disabled={page === totalFilteredPages}
+                        />
+                        <Pagination.Last 
+                            onClick={() => setPage(totalFilteredPages)} 
+                            disabled={page === totalFilteredPages}
+                        />
                     </Pagination>
                 </div>
             </div>
+
+            <style>
+                {`
+                    .custom-pagination .page-link {
+                        background-color: #fff;
+                        border-color: #333;
+                        color: #000;
+                    }
+                    .custom-pagination .page-item.active .page-link {
+                        background-color: #28808f;
+                        border-color: #333;
+                        color: #fff;
+                    }
+                    .custom-pagination .page-item.disabled .page-link {
+                        background-color: #fff;
+                        border-color: #333;
+                        color: #666;
+                    }
+                `}
+            </style>
         </>
     );
 };
