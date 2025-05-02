@@ -577,7 +577,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 boxShadow: '0 0 24px #0008'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <h3 style={{ color: '#fff', margin: 0 }}>Incremental MRR Increase Risk Summary</h3>
+                    <h3 style={{ color: '#fff', margin: 0 }}>Forecasted Incremental MRR Summary</h3>
                     <div style={{ display: 'flex', gap: '24px' }}>
                         <div style={{ color: '#fff' }}>
                             <span style={{ fontWeight: 'bold' }}>Price Increase:</span>
