@@ -484,6 +484,49 @@ const Forecast = ({ customerId }: { customerId: string }) => {
         }
     }, [customerId]);
 
+    // Add state for table pagination and search
+    const [searchQuery, setSearchQuery] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Filter customers based on search query
+    const filteredTableCustomers = useMemo(() => {
+        if (!searchQuery) return filteredCustomers;
+        
+        const query = searchQuery.toLowerCase();
+        return filteredCustomers.filter(customer => {
+            return (
+                customer["Account Name"]?.toLowerCase().includes(query) ||
+                customer["Segment"]?.toLowerCase().includes(query) ||
+                customer["Renewal Manager"]?.toLowerCase().includes(query) ||
+                customer["Renewal Team"]?.toLowerCase().includes(query) ||
+                customer["Region"]?.toLowerCase().includes(query) ||
+                customer["Bucket Name"]?.toLowerCase().includes(query)
+            );
+        });
+    }, [filteredCustomers, searchQuery]);
+
+    // Calculate pagination
+    const totalFilteredRows = filteredTableCustomers.length;
+    const totalFilteredPages = Math.ceil(totalFilteredRows / pageSize);
+    const startIndex = (page - 1) * pageSize;
+    const paginatedCustomers = filteredTableCustomers.slice(startIndex, startIndex + pageSize);
+
+    // Define table fields
+    const customerFields = [
+        "Account Name",
+        "Monthly Recurring Revenue",
+        "Segment",
+        "Renewal Manager",
+        "Renewal Team",
+        "Managed Renewal Date",
+        "Region",
+        "Adoption Score",
+        "MRR Score",
+        "Bucket Name",
+        "Initial Subscription"
+    ];
+
     if (loading) {
         return (
             <Container className="mt-5 pt-5">
@@ -657,6 +700,154 @@ const Forecast = ({ customerId }: { customerId: string }) => {
             }}>
                 <div style={{ height: '500px', width: '100%' }}>
                     <Line data={chartData} options={chartOptions} />
+                </div>
+            </div>
+
+            {/* Customer Table */}
+            <div style={{ 
+                marginTop: 40, 
+                marginLeft: '200px', 
+                width: 'calc(100vw - 200px)', 
+                maxWidth: '1200px', 
+                overflowX: 'auto',
+                background: '#000',
+                padding: '24px',
+                borderRadius: 12,
+                boxShadow: '0 0 24px #0008',
+            }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Search customers..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #333',
+                                    background: '#111',
+                                    color: '#fff',
+                                    width: '300px'
+                                }}
+                            />
+                        </div>
+                        <span style={{ fontWeight: 500, color: '#fff' }}>
+                            Showing {Math.min((page - 1) * pageSize + 1, totalFilteredRows)} - {Math.min(page * pageSize, totalFilteredRows)} of {totalFilteredRows} customers
+                        </span>
+                    </div>
+                    <div>
+                        <label style={{ marginRight: 8, color: '#fff' }}>Rows per page:</label>
+                        <select 
+                            value={pageSize} 
+                            onChange={e => { 
+                                setPageSize(Number(e.target.value)); 
+                                setPage(1); 
+                            }}
+                            style={{
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                border: '1px solid #333',
+                                background: '#111',
+                                color: '#fff'
+                            }}
+                        >
+                            {[10, 20, 50, 100].map(size => (
+                                <option key={size} value={size}>{size}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                <Table striped bordered hover size="sm" style={{ width: '100%', color: '#fff', background: '#111' }}>
+                    <thead>
+                        <tr>
+                            {customerFields.map(field => (
+                                <th key={field} style={{ 
+                                    background: '#fff',
+                                    color: '#000',
+                                    borderColor: '#333'
+                                }}>
+                                    {field}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {paginatedCustomers.map((customer, idx) => (
+                            <tr key={idx}>
+                                <td style={{ borderColor: '#333' }}>{customer["Account Name"]}</td>
+                                <td style={{ borderColor: '#333' }}>${Number(customer["Monthly Recurring Revenue"]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Segment"]}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Renewal Manager"]}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Renewal Team"]}</td>
+                                <td style={{ borderColor: '#333' }}>{new Date(customer["Managed Renewal Date"]).toLocaleDateString()}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Region"]}</td>
+                                <td style={{ borderColor: '#333' }}>{Number(customer["Adoption Score"]).toFixed(2)}</td>
+                                <td style={{ borderColor: '#333' }}>{Number(customer["MRR Score"]).toFixed(2)}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Bucket Name"]}</td>
+                                <td style={{ borderColor: '#333' }}>{customer["Initial Subscription"]}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: '8px' }}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(1)}
+                        disabled={page === 1}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        «
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                        disabled={page === 1}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        ‹
+                    </Button>
+                    {Array.from({ length: Math.min(5, totalFilteredPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalFilteredPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page <= 3) {
+                            pageNum = i + 1;
+                        } else if (page >= totalFilteredPages - 2) {
+                            pageNum = totalFilteredPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i;
+                        }
+                        return (
+                            <Button
+                                key={i}
+                                variant={page === pageNum ? "primary" : "secondary"}
+                                onClick={() => setPage(pageNum)}
+                                style={page === pageNum ? 
+                                    { background: '#28808f', borderColor: '#333' } : 
+                                    { background: '#222', borderColor: '#333' }}
+                            >
+                                {pageNum}
+                            </Button>
+                        );
+                    })}
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(prev => Math.min(totalFilteredPages, prev + 1))}
+                        disabled={page === totalFilteredPages}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        ›
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(totalFilteredPages)}
+                        disabled={page === totalFilteredPages}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        »
+                    </Button>
                 </div>
             </div>
         </>

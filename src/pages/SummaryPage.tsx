@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Container, Form, Dropdown, ButtonGroup, Table, Pagination, Button } from "react-bootstrap";
+import { Container, Form, Dropdown, ButtonGroup, Table, Button } from "react-bootstrap";
 import { Scatter } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -54,18 +54,6 @@ const BUCKET_COLORS: Record<string, string> = {
     "Disengaged Low-Value": "#a50026"     // Dark Red
 };
 
-const CHURN_MULTIPLIERS: Record<string, { worst: number; realistic: number; best: number }> = {
-    "Engaged High-Value": { worst: 0.8, realistic: 0.5, best: 0.2 },
-    "Engaged Mid-Value": { worst: 1, realistic: 0.625, best: 0.25 },
-    "Engaged Low-Value": { worst: 1.25, realistic: 0.78125, best: 0.3125 },
-    "Moderate High-Value": { worst: 1.563, realistic: 0.9765625, best: 0.390625 },
-    "Moderate Mid-Value": { worst: 1.954, realistic: 1.220703125, best: 0.48828125 },
-    "Moderate Low-Value": { worst: 2.442, realistic: 1.525878906, best: 0.6103515625 },
-    "Disengaged High-Value": { worst: 3.051, realistic: 1.907348633, best: 0.7629394531 },
-    "Disengaged Mid-Value": { worst: 3.814, realistic: 2.384185791, best: 0.9536743164 },
-    "Disengaged Low-Value": { worst: 4.768, realistic: 2.980232239, best: 1.192092896 }
-};
-
 const SummaryPage = ({ customerId }: { customerId: string }) => {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -78,10 +66,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     const [selectedRenewalManagers, setSelectedRenewalManagers] = useState<string[]>([]);
     const [selectedRenewalTeams, setSelectedRenewalTeams] = useState<string[]>([]);
     const [selectedRenewalDates, setSelectedRenewalDates] = useState<string[]>([]);
-
-    // --- CHURN CALCULATION STATE ---
-    const [priceIncrease, setPriceIncrease] = useState(0.20); // 20%
-    const [variableChurnBaseline, setVariableChurnBaseline] = useState(0.10); // 10%
 
     // --- UNIQUE VALUES FOR FILTERS ---
     const uniqueBuckets = useMemo(() => Array.from(new Set(customers.map(c => c["Bucket Name"]))).filter(Boolean), [customers]);
@@ -291,7 +275,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             },
             title: {
                 display: true,
-                text: 'Customer Risk Profile - Price Uplift',
+                text: 'Customer Risk Profile',
                 color: '#fff',
                 font: { size: 22 }
             },
@@ -371,9 +355,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             count: number; 
             totalMRR: number;
             averageMRR: number;
-            worstCase: number; 
-            realisticCase: number; 
-            bestCase: number;
         }> = {};
 
         // Initialize all buckets in order
@@ -381,10 +362,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             summary[bucket] = {
                 count: 0,
                 totalMRR: 0,
-                averageMRR: 0,
-                worstCase: 0,
-                realisticCase: 0,
-                bestCase: 0
+                averageMRR: 0
             };
         });
 
@@ -398,22 +376,14 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
             summary[bucket].totalMRR += mrr;
         });
 
-        // Calculate average MRR and churn risk for each bucket
+        // Calculate average MRR for each bucket
         BUCKET_ORDER.forEach(bucket => {
             const data = summary[bucket];
             data.averageMRR = data.count > 0 ? Math.round((data.totalMRR / data.count) * 100) / 100 : 0;
-            
-            const multipliers = CHURN_MULTIPLIERS[bucket];
-            const priceIncreaseImpact = Math.round((data.totalMRR * priceIncrease) * 100) / 100;
-            const baseChurnRisk = Math.round((data.count * variableChurnBaseline * data.averageMRR) * 100) / 100;
-            
-            data.worstCase = Math.round((priceIncreaseImpact - (baseChurnRisk * multipliers.worst)) * 100) / 100;
-            data.realisticCase = Math.round((priceIncreaseImpact - (baseChurnRisk * multipliers.realistic)) * 100) / 100;
-            data.bestCase = Math.round((priceIncreaseImpact - (baseChurnRisk * multipliers.best)) * 100) / 100;
         });
 
         return summary;
-    }, [filteredCustomers, priceIncrease, variableChurnBaseline]);
+    }, [filteredCustomers]);
 
     if (loading) {
         return (
@@ -465,52 +435,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 boxShadow: '0 0 24px #0008',
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <h3 style={{ color: '#fff', margin: 0 }}>Incremental MRR Increase Risk Summary</h3>
-                    <div style={{ display: 'flex', gap: '24px' }}>
-                        <div style={{ color: '#fff' }}>
-                            <span style={{ fontWeight: 'bold' }}>Price Increase:</span>
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={Math.round(priceIncrease * 100)}
-                                onChange={(e) => setPriceIncrease(Number(e.target.value) / 100)}
-                                style={{
-                                    marginLeft: '8px',
-                                    width: '60px',
-                                    padding: '4px',
-                                    background: '#111',
-                                    color: '#fff',
-                                    border: '1px solid #333',
-                                    borderRadius: '4px'
-                                }}
-                            />%
-                        </div>
-                        <div style={{ color: '#fff' }}>
-                            <span style={{ fontWeight: 'bold' }}>Variable Churn Baseline:</span>
-                            <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                step="1"
-                                value={Math.round(variableChurnBaseline * 100)}
-                                onChange={(e) => {
-                                    const value = Math.min(100, Math.max(0, Number(e.target.value)));
-                                    setVariableChurnBaseline(value / 100);
-                                }}
-                                style={{
-                                    marginLeft: '8px',
-                                    width: '60px',
-                                    padding: '4px',
-                                    background: '#111',
-                                    color: '#fff',
-                                    border: '1px solid #333',
-                                    borderRadius: '4px'
-                                }}
-                            />%
-                        </div>
-                    </div>
+                    <h3 style={{ color: '#fff', margin: 0 }}>Customer Buckets Summary</h3>
                 </div>
                 <Table striped bordered hover size="sm" responsive style={{ 
                     background: '#111', 
@@ -522,9 +447,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Customer Count</th>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Total MRR</th>
                             <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Average MRR</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000', borderLeft: '6px solid #666', paddingLeft: '16px' }}>Worst Case Incremental MRR</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Realistic Incremental MRR</th>
-                            <th style={{ background: '#fff', borderColor: '#333', color: '#000' }}>Best Case Incremental MRR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -537,9 +459,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                                     <td style={{ borderColor: '#333' }}>{data.count}</td>
                                     <td style={{ borderColor: '#333' }}>${data.totalMRR.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                     <td style={{ borderColor: '#333' }}>${data.averageMRR.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td style={{ borderColor: '#333', borderLeft: '6px solid #666', paddingLeft: '16px' }}>${data.worstCase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td style={{ borderColor: '#333' }}>${data.realisticCase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                                    <td style={{ borderColor: '#333' }}>${data.bestCase.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                                 </tr>
                             );
                         })}
@@ -555,23 +474,9 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                                 ${(Math.round((BUCKET_ORDER.reduce((sum, bucket) => sum + churnRiskSummary[bucket].totalMRR, 0) / 
                                    Math.max(1, BUCKET_ORDER.reduce((sum, bucket) => sum + churnRiskSummary[bucket].count, 0))) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
-                            <td style={{ borderColor: '#333', borderLeft: '6px solid #666', paddingLeft: '16px' }}>
-                                ${BUCKET_ORDER.reduce((sum, bucket) => sum + churnRiskSummary[bucket].worstCase, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
-                            <td style={{ borderColor: '#333' }}>
-                                ${BUCKET_ORDER.reduce((sum, bucket) => sum + churnRiskSummary[bucket].realisticCase, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
-                            <td style={{ borderColor: '#333' }}>
-                                ${BUCKET_ORDER.reduce((sum, bucket) => sum + churnRiskSummary[bucket].bestCase, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </td>
                         </tr>
                     </tbody>
                 </Table>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                    <Button variant="primary" style={{ background: '#28808f', border: '1px solid #333', padding: '8px 16px' }}>
-                        Generate Cohort
-                    </Button>
-                </div>
             </div>
 
             {/* Chart Container */}
@@ -690,56 +595,65 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                     </tbody>
                 </Table>
                 {/* Pagination Controls */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
-                    <Pagination className="custom-pagination">
-                        <Pagination.First 
-                            onClick={() => setPage(1)} 
-                            disabled={page === 1}
-                        />
-                        <Pagination.Prev 
-                            onClick={() => setPage(p => Math.max(1, p - 1))} 
-                            disabled={page === 1}
-                        />
-                        {Array.from({ length: totalFilteredPages }, (_, i) => i + 1).slice(Math.max(0, page - 3), Math.min(totalFilteredPages, page + 2)).map(pn => (
-                            <Pagination.Item 
-                                key={pn} 
-                                active={pn === page} 
-                                onClick={() => setPage(pn)}
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: '8px' }}>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(1)}
+                        disabled={page === 1}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        «
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                        disabled={page === 1}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        ‹
+                    </Button>
+                    {Array.from({ length: Math.min(5, totalFilteredPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalFilteredPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (page <= 3) {
+                            pageNum = i + 1;
+                        } else if (page >= totalFilteredPages - 2) {
+                            pageNum = totalFilteredPages - 4 + i;
+                        } else {
+                            pageNum = page - 2 + i;
+                        }
+                        return (
+                            <Button
+                                key={i}
+                                variant={page === pageNum ? "primary" : "secondary"}
+                                onClick={() => setPage(pageNum)}
+                                style={page === pageNum ? 
+                                    { background: '#28808f', borderColor: '#333' } : 
+                                    { background: '#222', borderColor: '#333' }}
                             >
-                                {pn}
-                            </Pagination.Item>
-                        ))}
-                        <Pagination.Next 
-                            onClick={() => setPage(p => Math.min(totalFilteredPages, p + 1))} 
-                            disabled={page === totalFilteredPages}
-                        />
-                        <Pagination.Last 
-                            onClick={() => setPage(totalFilteredPages)} 
-                            disabled={page === totalFilteredPages}
-                        />
-                    </Pagination>
+                                {pageNum}
+                            </Button>
+                        );
+                    })}
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(prev => Math.min(totalFilteredPages, prev + 1))}
+                        disabled={page === totalFilteredPages}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        ›
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setPage(totalFilteredPages)}
+                        disabled={page === totalFilteredPages}
+                        style={{ background: '#222', borderColor: '#333' }}
+                    >
+                        »
+                    </Button>
                 </div>
             </div>
-
-            <style>
-                {`
-                    .custom-pagination .page-link {
-                        background-color: #fff;
-                        border-color: #333;
-                        color: #000;
-                    }
-                    .custom-pagination .page-item.active .page-link {
-                        background-color: #28808f;
-                        border-color: #333;
-                        color: #fff;
-                    }
-                    .custom-pagination .page-item.disabled .page-link {
-                        background-color: #fff;
-                        border-color: #333;
-                        color: #666;
-                    }
-                `}
-            </style>
         </>
     );
 };
