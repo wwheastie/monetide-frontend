@@ -565,7 +565,25 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 {renderDropdownCheckboxGroup('Renewal Manager', uniqueRenewalManagers, selectedRenewalManagers, setSelectedRenewalManagers)}
             </div>
 
-            {/* Risk Summary Table */}
+            {/* Forecast Chart */}
+            <div style={{
+                width: 'calc(100vw - 200px)',
+                maxWidth: '1200px',
+                marginLeft: '200px',
+                background: '#000',
+                padding: '32px 24px',
+                minHeight: '500px',
+                boxSizing: 'border-box',
+                borderRadius: 12,
+                boxShadow: '0 0 24px #0008',
+                marginBottom: '32px',
+            }}>
+                <div style={{ height: '500px', width: '100%' }}>
+                    <Line data={chartData} options={chartOptions} />
+                </div>
+            </div>
+
+            {/* Summary Table Container */}
             <div style={{
                 width: 'calc(100vw - 200px)',
                 maxWidth: '1200px',
@@ -574,9 +592,9 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 padding: '24px',
                 marginBottom: '32px',
                 borderRadius: 12,
-                boxShadow: '0 0 24px #0008'
+                boxShadow: '0 0 24px #0008',
             }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ color: '#fff', margin: 0 }}>Forecasted Incremental MRR Summary</h3>
                     <div style={{ display: 'flex', gap: '24px' }}>
                         <div style={{ color: '#fff' }}>
@@ -683,23 +701,6 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                     <Button variant="primary" style={{ background: '#28808f', border: '1px solid #333', padding: '8px 16px' }}>
                         Generate Cohort
                     </Button>
-                </div>
-            </div>
-
-            {/* Forecast Chart */}
-            <div style={{
-                width: 'calc(100vw - 200px)',
-                maxWidth: '1200px',
-                marginLeft: '200px',
-                background: '#000',
-                padding: '32px 24px',
-                minHeight: '500px',
-                boxSizing: 'border-box',
-                borderRadius: 12,
-                boxShadow: '0 0 24px #0008'
-            }}>
-                <div style={{ height: '500px', width: '100%' }}>
-                    <Line data={chartData} options={chartOptions} />
                 </div>
             </div>
 

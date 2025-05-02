@@ -423,6 +423,40 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 {renderDropdownCheckboxGroup('Renewal Manager', uniqueRenewalManagers, selectedRenewalManagers, setSelectedRenewalManagers)}
             </div>
 
+            {/* Chart Container */}
+            <div
+                style={{
+                    width: 'calc(100vw - 200px)',
+                    maxWidth: '1200px',
+                    marginLeft: '200px',
+                    background: '#000',
+                    padding: '32px 24px',
+                    minHeight: '500px',
+                    boxSizing: 'border-box',
+                    borderRadius: 12,
+                    boxShadow: '0 0 24px #0008',
+                    marginBottom: '32px',
+                }}
+            >
+                <div style={{ height: '500px', width: '100%' }}>
+                    <Scatter
+                        data={chartData}
+                        options={{
+                            ...chartOptions,
+                            maintainAspectRatio: false,
+                            responsive: true,
+                            scales: {
+                                ...chartOptions.scales,
+                                x: {
+                                    ...chartOptions.scales.x,
+                                    min: 0,
+                                }
+                            }
+                        }}
+                    />
+                </div>
+            </div>
+
             {/* Churn Risk Summary Table */}
             <div style={{
                 width: 'calc(100vw - 200px)',
@@ -479,38 +513,6 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                 </Table>
             </div>
 
-            {/* Chart Container */}
-            <div
-                style={{
-                    width: 'calc(100vw - 200px)',
-                    maxWidth: '1200px',
-                    marginLeft: '200px',
-                    background: '#000',
-                    padding: '32px 24px',
-                    minHeight: '500px',
-                    boxSizing: 'border-box',
-                    borderRadius: 12,
-                    boxShadow: '0 0 24px #0008',
-                }}
-            >
-                <div style={{ height: '500px', width: '100%' }}>
-                    <Scatter
-                        data={chartData}
-                        options={{
-                            ...chartOptions,
-                            maintainAspectRatio: false,
-                            responsive: true,
-                            scales: {
-                                ...chartOptions.scales,
-                                x: {
-                                    ...chartOptions.scales.x,
-                                    min: 0,
-                                }
-                            }
-                        }}
-                    />
-                </div>
-            </div>
             {/* Customer Table outside chart area */}
             <div style={{ 
                 marginTop: 40, 
