@@ -24,6 +24,13 @@ const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
                     >
                         Summary
                     </Nav.Link>
+                    <Nav.Link
+                        as={Link}
+                        to="/forecast"
+                        className={`sidebar-link ${location.pathname === "/forecast" ? "active-link" : ""}`}
+                    >
+                        Forecast
+                    </Nav.Link>
                 </Nav>
             </div>
 
