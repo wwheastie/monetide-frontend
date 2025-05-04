@@ -557,7 +557,6 @@ const Forecast = ({ customerId }: { customerId: string }) => {
 
     useEffect(() => {
         const handleScroll = () => {
-            const activeIndex = monthYearOrder.indexOf(activeTab);
             const container = document.querySelector('.forecast-tab-wrapper');
             if (container) {
                 const { scrollLeft, scrollWidth, clientWidth } = container;
@@ -571,7 +570,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
             container.addEventListener('scroll', handleScroll);
             return () => container.removeEventListener('scroll', handleScroll);
         }
-    }, [activeTab, monthYearOrder]);
+    }, [monthYearOrder]);
 
     // Filter customers based on search query
     const filteredTabCustomers = useMemo(() => {

@@ -67,9 +67,7 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
       selectedSegments, setSelectedSegments,
       selectedRenewalManagers, setSelectedRenewalManagers,
       selectedRenewalTeams, setSelectedRenewalTeams,
-      selectedRenewalDates, setSelectedRenewalDates,
-      priceIncrease, setPriceIncrease,
-      variableChurnBaseline, setVariableChurnBaseline
+      selectedRenewalDates, setSelectedRenewalDates
     } = useFilterStore();
 
     // --- UNIQUE VALUES FOR FILTERS ---
