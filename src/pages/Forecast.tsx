@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Container, Form, Dropdown, ButtonGroup, Table, Button } from "react-bootstrap";
+import { Container, Form, Dropdown, ButtonGroup, Table, Button, Nav } from "react-bootstrap";
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -15,6 +15,7 @@ import {
 } from 'chart.js';
 import { API_BASE_URL } from '../config';
 import { useFilterStore } from '../store/customerDataStore';
+import { ChevronLeft, ChevronRight } from "react-bootstrap-icons";
 
 ChartJS.register(
     CategoryScale,
@@ -485,33 +486,108 @@ const Forecast = ({ customerId }: { customerId: string }) => {
         }
     }, [customerId]);
 
-    // Add state for table pagination and search
+    // Add state for search query and pagination per tab
     const [searchQuery, setSearchQuery] = useState('');
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [tabPage, setTabPage] = useState<Record<string, number>>({});
+    const [tabPageSize, setTabPageSize] = useState<Record<string, number>>({});
+    const getPage = (tab: string) => tabPage[tab] || 1;
+    const getPageSize = (tab: string) => tabPageSize[tab] || 10;
+    const setPage = (tab: string, page: number) => setTabPage(prev => ({ ...prev, [tab]: page }));
+    const setPageSize = (tab: string, size: number) => setTabPageSize(prev => ({ ...prev, [tab]: size }));
 
-    // Filter customers based on a search query
-    const filteredTableCustomers = useMemo(() => {
-        if (!searchQuery) return filteredCustomers;
-        
-        const query = searchQuery.toLowerCase();
-        return filteredCustomers.filter(customer => {
-            return (
-                customer["Account Name"]?.toLowerCase().includes(query) ||
-                customer["Segment"]?.toLowerCase().includes(query) ||
-                customer["Renewal Manager"]?.toLowerCase().includes(query) ||
-                customer["Renewal Team"]?.toLowerCase().includes(query) ||
-                customer["Region"]?.toLowerCase().includes(query) ||
-                customer["Bucket Name"]?.toLowerCase().includes(query)
-            );
+    // Find unique Month-Year labels in calendar order
+    const monthYearOrder = useMemo(() => {
+        const dateObjs = filteredCustomers
+            .map(c => c["Managed Renewal Date"])
+            .filter(Boolean)
+            .map(dateStr => {
+                const d = new Date(dateStr as string);
+                return {
+                    label: d.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+                    date: d
+                };
+            })
+            .filter(obj => !isNaN(obj.date.getTime()));
+        // Remove duplicates by label
+        const seen = new Set();
+        const unique = dateObjs.filter(obj => {
+            if (seen.has(obj.label)) return false;
+            seen.add(obj.label);
+            return true;
         });
-    }, [filteredCustomers, searchQuery]);
+        // Sort by date
+        unique.sort((a, b) => a.date.getTime() - b.date.getTime());
+        return unique.map(obj => obj.label);
+    }, [filteredCustomers]);
 
-    // Calculate pagination
-    const totalFilteredRows = filteredTableCustomers.length;
-    const totalFilteredPages = Math.ceil(totalFilteredRows / pageSize);
-    const startIndex = (page - 1) * pageSize;
-    const paginatedCustomers = filteredTableCustomers.slice(startIndex, startIndex + pageSize);
+    // Group customers by Month-Year label
+    const customersByMonthYear = useMemo(() => {
+        const groups: Record<string, typeof filteredCustomers> = {};
+        filteredCustomers.forEach(c => {
+            const d = new Date(c["Managed Renewal Date"] as string);
+            if (isNaN(d.getTime())) return;
+            const label = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            if (!groups[label]) groups[label] = [];
+            groups[label].push(c);
+        });
+        return groups;
+    }, [filteredCustomers]);
+
+    const [activeTab, setActiveTab] = useState(monthYearOrder[0] || "");
+    useEffect(() => {
+        if (!activeTab && monthYearOrder.length > 0) setActiveTab(monthYearOrder[0]);
+    }, [monthYearOrder, activeTab]);
+
+    // Add state and effect for scrollLeft/scrollRight, and the scrollTabs function
+    const [scrollLeft, setScrollLeft] = useState(false);
+    const [scrollRight, setScrollRight] = useState(false);
+
+    const scrollTabs = (direction: 'left' | 'right') => {
+        const activeIndex = monthYearOrder.indexOf(activeTab);
+        if (direction === 'left') {
+            if (activeIndex > 0) {
+                setActiveTab(monthYearOrder[activeIndex - 1]);
+            }
+        } else if (direction === 'right') {
+            if (activeIndex < monthYearOrder.length - 1) {
+                setActiveTab(monthYearOrder[activeIndex + 1]);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const activeIndex = monthYearOrder.indexOf(activeTab);
+            const container = document.querySelector('.forecast-tab-wrapper');
+            if (container) {
+                const { scrollLeft, scrollWidth, clientWidth } = container;
+                setScrollLeft(scrollLeft > 0);
+                setScrollRight(scrollLeft + clientWidth < scrollWidth);
+            }
+        };
+
+        const container = document.querySelector('.forecast-tab-wrapper');
+        if (container) {
+            container.addEventListener('scroll', handleScroll);
+            return () => container.removeEventListener('scroll', handleScroll);
+        }
+    }, [activeTab, monthYearOrder]);
+
+    // Filter customers based on search query
+    const filteredTabCustomers = useMemo(() => {
+        if (!searchQuery) return customersByMonthYear[activeTab] || [];
+        const query = searchQuery.toLowerCase();
+        return (customersByMonthYear[activeTab] || []).filter(customer =>
+            Object.values(customer).some(value => String(value).toLowerCase().includes(query))
+        );
+    }, [customersByMonthYear, activeTab, searchQuery]);
+
+    // Calculate pagination for the active tab
+    const paginatedTabCustomers = useMemo(() => {
+        const page = getPage(activeTab);
+        const pageSize = getPageSize(activeTab);
+        return filteredTabCustomers.slice((page - 1) * pageSize, page * pageSize);
+    }, [filteredTabCustomers, activeTab, getPage, getPageSize]);
 
     // Define table fields
     const customerFields = [
@@ -705,7 +781,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 </div>
             </div>
 
-            {/* Customer Table */}
+            {/* Customer Table with Tabs */}
             <div style={{ 
                 marginTop: 40, 
                 marginLeft: '200px', 
@@ -717,6 +793,30 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 borderRadius: 12,
                 boxShadow: '0 0 24px #0008',
             }}>
+                <div className="d-flex align-items-center position-relative mb-3">
+                    {scrollLeft && (
+                        <ChevronLeft className="tab-arrow left position-absolute start-0 z-3" onClick={() => scrollTabs("left")} />
+                    )}
+                    <div className="forecast-tab-wrapper flex-grow-1 mx-5 overflow-hidden" style={{ minWidth: 0, width: '100%' }}>
+                        <Nav
+                            variant="tabs"
+                            activeKey={activeTab}
+                            onSelect={k => setActiveTab(k || "")}
+                            style={{ display: 'flex', width: '100%' }}
+                        >
+                            {monthYearOrder.map(monthYear => (
+                                <Nav.Item key={monthYear} style={{ flex: 1, minWidth: 0 }}>
+                                    <Nav.Link eventKey={monthYear} style={{ width: '100%', textAlign: 'center', whiteSpace: 'normal', overflow: 'visible' }}>
+                                        {monthYear}
+                                    </Nav.Link>
+                                </Nav.Item>
+                            ))}
+                        </Nav>
+                    </div>
+                    {scrollRight && (
+                        <ChevronRight className="tab-arrow right position-absolute end-0 z-3" onClick={() => scrollTabs("right")} />
+                    )}
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                         <div>
@@ -724,7 +824,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                                 type="text"
                                 placeholder="Search customers..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={e => setSearchQuery(e.target.value)}
                                 style={{
                                     padding: '8px 12px',
                                     borderRadius: '4px',
@@ -736,17 +836,14 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                             />
                         </div>
                         <span style={{ fontWeight: 500, color: '#fff' }}>
-                            Showing {Math.min((page - 1) * pageSize + 1, totalFilteredRows)} - {Math.min(page * pageSize, totalFilteredRows)} of {totalFilteredRows} customers
+                            Showing {Math.min((getPage(activeTab) - 1) * getPageSize(activeTab) + 1, filteredTabCustomers.length)} - {Math.min(getPage(activeTab) * getPageSize(activeTab), filteredTabCustomers.length)} of {filteredTabCustomers.length} customers
                         </span>
                     </div>
                     <div>
                         <label style={{ marginRight: 8, color: '#fff' }}>Rows per page:</label>
-                        <select 
-                            value={pageSize} 
-                            onChange={e => { 
-                                setPageSize(Number(e.target.value)); 
-                                setPage(1); 
-                            }}
+                        <select
+                            value={getPageSize(activeTab)}
+                            onChange={e => { setPageSize(activeTab, Number(e.target.value)); setPage(activeTab, 1); }}
                             style={{
                                 padding: '4px 8px',
                                 borderRadius: '4px',
@@ -776,7 +873,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedCustomers.map((customer, idx) => (
+                        {paginatedTabCustomers.map((customer, idx) => (
                             <tr key={idx}>
                                 <td style={{ borderColor: '#333' }}>{customer["Account Name"]}</td>
                                 <td style={{ borderColor: '#333' }}>${Number(customer["Monthly Recurring Revenue"]).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -796,37 +893,37 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: '8px' }}>
                     <Button
                         variant="secondary"
-                        onClick={() => setPage(1)}
-                        disabled={page === 1}
+                        onClick={() => setPage(activeTab, 1)}
+                        disabled={getPage(activeTab) === 1}
                         style={{ background: '#222', borderColor: '#333' }}
                     >
                         «
                     </Button>
                     <Button
                         variant="secondary"
-                        onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                        disabled={page === 1}
+                        onClick={() => setPage(activeTab, Math.max(1, getPage(activeTab) - 1))}
+                        disabled={getPage(activeTab) === 1}
                         style={{ background: '#222', borderColor: '#333' }}
                     >
                         ‹
                     </Button>
-                    {Array.from({ length: Math.min(5, totalFilteredPages) }, (_, i) => {
+                    {Array.from({ length: Math.min(5, Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab))) }, (_, i) => {
                         let pageNum;
-                        if (totalFilteredPages <= 5) {
+                        if (Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab)) <= 5) {
                             pageNum = i + 1;
-                        } else if (page <= 3) {
+                        } else if (getPage(activeTab) <= 3) {
                             pageNum = i + 1;
-                        } else if (page >= totalFilteredPages - 2) {
-                            pageNum = totalFilteredPages - 4 + i;
+                        } else if (getPage(activeTab) >= Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab)) - 2) {
+                            pageNum = Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab)) - 4 + i;
                         } else {
-                            pageNum = page - 2 + i;
+                            pageNum = getPage(activeTab) - 2 + i;
                         }
                         return (
                             <Button
                                 key={i}
-                                variant={page === pageNum ? "primary" : "secondary"}
-                                onClick={() => setPage(pageNum)}
-                                style={page === pageNum ? 
+                                variant={getPage(activeTab) === pageNum ? "primary" : "secondary"}
+                                onClick={() => setPage(activeTab, pageNum)}
+                                style={getPage(activeTab) === pageNum ? 
                                     { background: '#28808f', borderColor: '#333' } : 
                                     { background: '#222', borderColor: '#333' }}
                             >
@@ -836,16 +933,16 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                     })}
                     <Button
                         variant="secondary"
-                        onClick={() => setPage(prev => Math.min(totalFilteredPages, prev + 1))}
-                        disabled={page === totalFilteredPages}
+                        onClick={() => setPage(activeTab, Math.min(Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab)), getPage(activeTab) + 1))}
+                        disabled={getPage(activeTab) === Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab))}
                         style={{ background: '#222', borderColor: '#333' }}
                     >
                         ›
                     </Button>
                     <Button
                         variant="secondary"
-                        onClick={() => setPage(totalFilteredPages)}
-                        disabled={page === totalFilteredPages}
+                        onClick={() => setPage(activeTab, Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab)))}
+                        disabled={getPage(activeTab) === Math.ceil(customersByMonthYear[activeTab]?.length / getPageSize(activeTab))}
                         style={{ background: '#222', borderColor: '#333' }}
                     >
                         »
