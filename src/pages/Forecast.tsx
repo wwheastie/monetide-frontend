@@ -14,6 +14,7 @@ import {
     ChartOptions
 } from 'chart.js';
 import { API_BASE_URL } from '../config';
+import { useFilterStore } from '../store/customerDataStore';
 
 ChartJS.register(
     CategoryScale,
@@ -73,12 +74,14 @@ const Forecast = ({ customerId }: { customerId: string }) => {
     const [error, setError] = useState<string | null>(null);
 
     // --- FILTER STATE ---
-    const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
-    const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-    const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
-    const [selectedRenewalManagers, setSelectedRenewalManagers] = useState<string[]>([]);
-    const [selectedRenewalTeams, setSelectedRenewalTeams] = useState<string[]>([]);
-    const [selectedRenewalDates, setSelectedRenewalDates] = useState<string[]>([]);
+    const {
+      selectedBuckets, setSelectedBuckets,
+      selectedRegions, setSelectedRegions,
+      selectedSegments, setSelectedSegments,
+      selectedRenewalManagers, setSelectedRenewalManagers,
+      selectedRenewalTeams, setSelectedRenewalTeams,
+      selectedRenewalDates, setSelectedRenewalDates
+    } = useFilterStore();
 
     // Add price increase and variable churn baseline state
     const [priceIncrease, setPriceIncrease] = useState(0.20); // 20%
@@ -489,7 +492,7 @@ const Forecast = ({ customerId }: { customerId: string }) => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    // Filter customers based on search query
+    // Filter customers based on a search query
     const filteredTableCustomers = useMemo(() => {
         if (!searchQuery) return filteredCustomers;
         

@@ -10,6 +10,7 @@ import {
     Title
 } from 'chart.js';
 import { API_BASE_URL } from '../config';
+import { useFilterStore } from '../store/customerDataStore';
 
 ChartJS.register(LinearScale, PointElement, Tooltip, Legend, Title);
 
@@ -60,12 +61,14 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
     const [error, setError] = useState<string | null>(null);
 
     // --- FILTER STATE ---
-    const [selectedBuckets, setSelectedBuckets] = useState<string[]>([]);
-    const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-    const [selectedSegments, setSelectedSegments] = useState<string[]>([]);
-    const [selectedRenewalManagers, setSelectedRenewalManagers] = useState<string[]>([]);
-    const [selectedRenewalTeams, setSelectedRenewalTeams] = useState<string[]>([]);
-    const [selectedRenewalDates, setSelectedRenewalDates] = useState<string[]>([]);
+    const {
+      selectedBuckets, setSelectedBuckets,
+      selectedRegions, setSelectedRegions,
+      selectedSegments, setSelectedSegments,
+      selectedRenewalManagers, setSelectedRenewalManagers,
+      selectedRenewalTeams, setSelectedRenewalTeams,
+      selectedRenewalDates, setSelectedRenewalDates
+    } = useFilterStore();
 
     // --- UNIQUE VALUES FOR FILTERS ---
     const uniqueBuckets = useMemo(() => Array.from(new Set(customers.map(c => c["Bucket Name"]))).filter(Boolean), [customers]);
