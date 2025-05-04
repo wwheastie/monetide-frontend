@@ -25,6 +25,10 @@ interface FilterState {
   setSelectedRenewalTeams: (teams: string[]) => void;
   selectedRenewalDates: string[];
   setSelectedRenewalDates: (dates: string[]) => void;
+  priceIncrease: number;
+  setPriceIncrease: (value: number) => void;
+  variableChurnBaseline: number;
+  setVariableChurnBaseline: (value: number) => void;
   resetFilters: () => void;
 }
 
@@ -41,6 +45,10 @@ export const useFilterStore = create<FilterState>((set) => ({
   setSelectedRenewalTeams: (teams) => set({ selectedRenewalTeams: teams }),
   selectedRenewalDates: [],
   setSelectedRenewalDates: (dates) => set({ selectedRenewalDates: dates }),
+  priceIncrease: 0.20,
+  setPriceIncrease: (value) => set({ priceIncrease: value }),
+  variableChurnBaseline: 0.10,
+  setVariableChurnBaseline: (value) => set({ variableChurnBaseline: value }),
   resetFilters: () => set({
     selectedBuckets: [],
     selectedRegions: [],
@@ -48,5 +56,7 @@ export const useFilterStore = create<FilterState>((set) => ({
     selectedRenewalManagers: [],
     selectedRenewalTeams: [],
     selectedRenewalDates: [],
+    priceIncrease: 0.20,
+    variableChurnBaseline: 0.10,
   }),
 })); 

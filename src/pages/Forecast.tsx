@@ -80,12 +80,10 @@ const Forecast = ({ customerId }: { customerId: string }) => {
       selectedSegments, setSelectedSegments,
       selectedRenewalManagers, setSelectedRenewalManagers,
       selectedRenewalTeams, setSelectedRenewalTeams,
-      selectedRenewalDates, setSelectedRenewalDates
+      selectedRenewalDates, setSelectedRenewalDates,
+      priceIncrease, setPriceIncrease,
+      variableChurnBaseline, setVariableChurnBaseline
     } = useFilterStore();
-
-    // Add price increase and variable churn baseline state
-    const [priceIncrease, setPriceIncrease] = useState(0.20); // 20%
-    const [variableChurnBaseline, setVariableChurnBaseline] = useState(0.10); // 10%
 
     // --- UNIQUE VALUES FOR FILTERS ---
     const uniqueBuckets = useMemo(() => Array.from(new Set(customers.map(c => c["Bucket Name"]))).filter(Boolean), [customers]);
