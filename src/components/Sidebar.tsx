@@ -31,6 +31,13 @@ const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
                     >
                         Forecast
                     </Nav.Link>
+                    <Nav.Link
+                        as={Link}
+                        to="/generate"
+                        className={`sidebar-link ${location.pathname === "/generate" ? "active-link" : ""}`}
+                    >
+                        Generate
+                    </Nav.Link>
                 </Nav>
             </div>
 

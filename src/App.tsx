@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage";
 import RenewalsPage from "./pages/RenewalsPage";
 import SummaryPage from "./pages/SummaryPage";
 import Forecast from "./pages/Forecast";
+import Generate from "./pages/Generate";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -92,6 +93,14 @@ const App = () => {
                                                 element={
                                                     <ProtectedRoute customerId={customerId}>
                                                         <Forecast customerId={customerId} />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/generate"
+                                                element={
+                                                    <ProtectedRoute customerId={customerId}>
+                                                        <Generate />
                                                     </ProtectedRoute>
                                                 }
                                             />
