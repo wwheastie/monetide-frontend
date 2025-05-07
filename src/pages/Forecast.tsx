@@ -69,6 +69,8 @@ const CHURN_MULTIPLIERS: Record<string, { worst: number; realistic: number; best
     "Disengaged Low-Value": { worst: 4.768, realistic: 2.980232239, best: 1.192092896 }
 };
 
+const NOTICE_OPTIONS = [15, 30, 60, 90];
+
 const Forecast = ({ customerId }: { customerId: string }) => {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
@@ -518,6 +520,10 @@ const Forecast = ({ customerId }: { customerId: string }) => {
 
     const navigate = useNavigate();
 
+    // Add state for Notice Sent Date and Days of Notice
+    const [noticeSentDate, setNoticeSentDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+    const [daysOfNotice, setDaysOfNotice] = useState<number>(60);
+
     if (loading) {
         return (
             <Container className="mt-5 pt-5">
@@ -585,6 +591,50 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 borderRadius: 12,
                 boxShadow: '0 0 24px #0008',
             }}>
+                {/* Add Notice Sent Date and Days of Notice row */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 24 }}>
+                    <Form.Group controlId="noticeDate" style={{ marginBottom: 0, marginRight: 24 }}>
+                        <Form.Label style={{ color: '#fff', marginRight: 8, marginBottom: 0 }}>Notice Sent Date</Form.Label>
+                        <Form.Control
+                            type="date"
+                            value={noticeSentDate}
+                            onChange={e => setNoticeSentDate(e.target.value)}
+                            style={{ width: 170, background: '#111', color: '#fff', border: '1px solid #333' }}
+                        />
+                    </Form.Group>
+                    <Form.Group controlId="daysOfNotice" style={{ marginBottom: 0, marginRight: 24 }}>
+                        <Form.Label style={{ color: '#fff', marginRight: 8, marginBottom: 0 }}>Days of Notice</Form.Label>
+                        <Form.Select
+                            value={daysOfNotice}
+                            onChange={e => setDaysOfNotice(Number(e.target.value))}
+                            style={{ width: 120, background: '#111', color: '#fff', border: '1px solid #333' }}
+                        >
+                            {NOTICE_OPTIONS.map(days => (
+                                <option key={days} value={days}>{days} days</option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
+                    {/* Generate Cohort button, right-aligned */}
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button 
+                            variant="primary" 
+                            style={{ background: '#28808f', border: '1px solid #333', padding: '8px 16px' }}
+                            onClick={() => {
+                                const startDate = new Date(noticeSentDate);
+                                const targetDate = new Date(startDate);
+                                targetDate.setDate(startDate.getDate() + daysOfNotice);
+                                // Only include customers whose Managed Renewal Date is equal to or greater than targetDate
+                                const filteredByNotice = filteredCustomers.filter(c => {
+                                    const renewalDate = new Date(c["Managed Renewal Date"] as string);
+                                    return !isNaN(renewalDate.getTime()) && renewalDate >= targetDate;
+                                });
+                                navigate('/generate', { state: { customers: filteredByNotice } });
+                            }}
+                        >
+                            Generate Cohort
+                        </Button>
+                    </div>
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <h3 style={{ color: '#fff', margin: 0 }}>Forecasted Incremental MRR Summary</h3>
                     <div style={{ display: 'flex', gap: '24px' }}>
@@ -688,15 +738,6 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                         </tr>
                     </tbody>
                 </Table>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                    <Button 
-                        variant="primary" 
-                        style={{ background: '#28808f', border: '1px solid #333', padding: '8px 16px' }}
-                        onClick={() => navigate('/generate', { state: { customers: filteredCustomers } })}
-                    >
-                        Generate Cohort
-                    </Button>
-                </div>
             </div>
         </>
     );
