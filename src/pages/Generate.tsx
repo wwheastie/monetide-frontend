@@ -93,9 +93,42 @@ const Generate = () => {
         return filteredTabCustomers.slice((page - 1) * pageSize, page * pageSize);
     }, [filteredTabCustomers, activeTab, getPage, getPageSize]);
 
+    // CSV Export logic
+    const exportToCSV = () => {
+        if (!customers.length) return;
+        const fields = customerFields;
+        const csvRows = [fields.join(",")];
+        customers.forEach(customer => {
+            const row = fields.map(field => {
+                let val = customer[field];
+                if (typeof val === 'string') {
+                    val = '"' + val.replace(/"/g, '""') + '"';
+                }
+                return val;
+            });
+            csvRows.push(row.join(","));
+        });
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'generated_cohort.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <Container className="mt-5 pt-5">
             <h2>Generated Cohort</h2>
+            {/* Export button above the chart, right-aligned */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+                <Button variant="primary" onClick={exportToCSV} style={{ background: '#28808f', color: '#fff', border: '1px solid #333' }}>
+                    Export CSV
+                </Button>
+            </div>
             {monthYearOrder.length === 0 ? (
                 <p>No customers to display. Please generate a cohort from the Forecast page.</p>
             ) : (
