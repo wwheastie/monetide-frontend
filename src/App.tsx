@@ -9,6 +9,7 @@ import RenewalsPage from "./pages/RenewalsPage";
 import SummaryPage from "./pages/SummaryPage";
 import Forecast from "./pages/Forecast";
 import Generate from "./pages/Generate";
+import Reports from "./pages/Reports";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ProtectedRoute } from './components/ProtectedRoute';
 
@@ -101,6 +102,14 @@ const App = () => {
                                                 element={
                                                     <ProtectedRoute customerId={customerId}>
                                                         <Generate />
+                                                    </ProtectedRoute>
+                                                }
+                                            />
+                                            <Route
+                                                path="/reports"
+                                                element={
+                                                    <ProtectedRoute customerId={customerId}>
+                                                        <Reports />
                                                     </ProtectedRoute>
                                                 }
                                             />

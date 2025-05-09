@@ -38,6 +38,13 @@ const Sidebar = ({ onLogout }: { onLogout: () => void }) => {
                     >
                         Generate
                     </Nav.Link>
+                    <Nav.Link
+                        as={Link}
+                        to="/reports"
+                        className={`sidebar-link ${location.pathname === "/reports" ? "active-link" : ""}`}
+                    >
+                        Report
+                    </Nav.Link>
                 </Nav>
             </div>
 
