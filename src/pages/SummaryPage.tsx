@@ -301,9 +301,11 @@ const SummaryPage = ({ customerId }: { customerId: string }) => {
                             `Initial Subscription: ${customer["Initial Subscription"]}`,
                             `Bucket: ${customer["Bucket Name"]}`
                         ];
-                    }
+                    },
+                    title: function() { return ''; }
                 }
-            }
+            },
+            datalabels: { display: false },
         },
         scales: {
             x: {

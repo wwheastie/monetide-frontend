@@ -397,7 +397,8 @@ const Forecast = ({ customerId }: { customerId: string }) => {
                 text: 'Forecasted Incremental MRR - Price Increase',
                 color: '#fff',
                 font: { size: 16 }
-            }
+            },
+            datalabels: { display: false },
         },
         scales: {
             x: {
